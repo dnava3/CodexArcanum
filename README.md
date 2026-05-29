@@ -34,6 +34,6 @@ Para evitar el concepto *"Never trust the client"* y proteger la integridad acad
 * **Hosting:** Netlify (CI/CD Deploy).
 
 ## 📸 Capturas de Pantalla
-* `![Login](./screenshots/login.jpeg)` - Pantalla de Acceso.
-* `![Game](./screenshots/game.jpeg)` - Interfaz del Juego y Consola.
-* `![Dashboard](./screenshots/dashboard.jpeg)` - Panel B2B del Profesor.
+* `![Login](/screenshots/login.jpeg)` - Pantalla de Acceso.
+* `![Game](/screenshots/game.jpeg)` - Interfaz del Juego y Consola.
+* `![Dashboard](/screenshots/dashboard.jpeg)` - Panel B2B del Profesor.
