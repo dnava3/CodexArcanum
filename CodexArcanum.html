@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex Arcanum — El Aprendiz del Código</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+
+:root{
+  --bg-deep:#050407; --bg-main:#0d0b10; --bg-panel:#14121a; --bg-code:#09080d;
+  --border-dim:rgba(160,120,220,0.15); --border-gold:rgba(210,170,80,0.35); --border-purple:rgba(140,90,220,0.3);
+  --iron-grey:#2a2633; --gold:#c8922a; --gold-bright:#e8b84b; --gold-pale:#f5d890;
+  --cream:#ede4d0; --cream-muted:#8a7d6a;
+  --purple:#9b6dff; --green-c:#6dde9a; --blue-c:#79b4f5; --purple-c:#c39aff; --orange-c:#ffb570; --red-c:#ff8585; --grey-c:#7a8a7a;
+  --ch0:#9b6dff; --ch1:#5ba8ff; --ch2:#4caf7d; --ch3:#ff8c42; --ch4:#c39aff;
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+body{ background: var(--bg-deep); background-image: radial-gradient(circle at 50% 10%, rgba(50,40,80,0.2) 0%, transparent 70%), repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px); color:var(--cream); font-family:'Crimson Text',Georgia,serif; font-size:1.15rem; line-height:1.7; min-height:100vh; overflow-x: hidden; }
+
+#welcome, #class-selection, #resume-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; text-align:center; padding:2rem; }
+#class-selection, #resume-screen { display: none; }
+
+.panel-inner{ max-width:900px; width: 100%; background: radial-gradient(ellipse at center, rgba(20,16,30,0.98) 0%, rgba(13,11,16,1) 100%); border: 2px solid var(--iron-grey); border-radius: 8px; padding:3rem 2.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 25px rgba(155,109,255,0.08); position:relative; }
+.panel-inner::after, .panel-inner::before { content:''; position:absolute; width: 30px; height: 30px; border-color: var(--border-gold); border-style: solid; opacity:0.5; }
+.panel-inner::before { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+.panel-inner::after { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
+
+.section-rune{ font-family:'Cinzel',serif; font-size:0.85rem; color:var(--gold); letter-spacing:0.5em; opacity:0.7; margin-bottom:0.5rem; display:block; }
+.section-title{ font-family:'Cinzel',serif; font-size:2.5rem; font-weight:700; color:var(--gold-bright); letter-spacing:0.1em; margin-bottom:1.5rem; text-shadow: 0 2px 8px rgba(232,184,75,0.2); }
+
+.input-row { display: flex; gap: 15px; justify-content: center; max-width: 700px; margin: 0 auto 2.5rem; flex-wrap: wrap; }
+.input-col { display: flex; flex-direction: column; text-align: left; flex:1; min-width: 200px; }
+.input-col label { font-size:0.8rem; color:var(--gold-pale); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem; font-family:'Cinzel',serif; }
+.input-styled { padding:0.75rem 1rem; background:rgba(0,0,0,0.4); border:1px solid var(--border-purple); border-radius:4px; color:var(--cream); font-family:'Crimson Text',serif; font-size:1.1rem; outline:none; transition: all 0.2s; }
+.input-styled:focus { border-color:var(--purple); box-shadow: 0 0 12px rgba(155,109,255,0.25); }
+select.input-styled option { background: var(--bg-panel); color: var(--cream); }
+
+.avatar-upload-box { border: 1px dashed var(--border-purple); border-radius: 4px; padding: 1rem; text-align: center; position: relative; background: rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.avatar-upload-box:hover { border-color: var(--purple); background: rgba(155,109,255,0.1); }
+#avatar-file { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.avatar-preview-circle { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--iron-grey); object-fit: cover; background: #000; }
+
+.nav-avatar-container { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; position: relative; flex-shrink: 0; }
+.nav-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+
+.frame-caballero { border: 2px solid #a3b1b6; box-shadow: 0 0 10px rgba(163,177,182,0.5), inset 0 0 10px #000; }
+.frame-caballero::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; box-shadow: inset 0 0 15px rgba(0,0,0,0.9); pointer-events:none; border-radius:50%; }
+
+.frame-hechicero { border: 2px solid #9b6dff; box-shadow: 0 0 15px rgba(155,109,255,0.8), inset 0 0 15px #573393; }
+.frame-hechicero::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background: rgba(155,109,255,0.25); mix-blend-mode: overlay; pointer-events:none; border-radius:50%; }
+
+.frame-piromantico { border: 2px solid #ff5722; box-shadow: 0 0 15px rgba(255,87,34,0.8), inset 0 0 15px #bf360c; }
+.frame-piromantico::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background: rgba(255,87,34,0.3); mix-blend-mode: color-burn; pointer-events:none; border-radius:50%; }
+
+.frame-clerigo { border: 2px solid #f5d890; box-shadow: 0 0 15px rgba(245,216,144,0.8), inset 0 0 15px #c8922a; }
+.frame-clerigo::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background: rgba(245,216,144,0.2); mix-blend-mode: soft-light; pointer-events:none; border-radius:50%; }
+
+.frame-marginado { border: 2px dashed #7a8a7a; box-shadow: inset 0 0 20px #000; filter: contrast(120%) sepia(30%); }
+.frame-marginado::after { content:''; position:absolute; top:0; left:0; right:0; bottom:0; box-shadow: inset 0 0 20px rgba(0,0,0,0.9); pointer-events:none; border-radius:50%; }
+
+.btn-prime{ padding:0.9rem 2rem; background: linear-gradient(180deg, #573393 0%, #351d66 100%); border:1px solid var(--gold); border-radius:4px; color:var(--gold-pale); font-family:'Cinzel',serif; font-size:1rem; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.btn-prime:hover{ background: linear-gradient(180deg, #6c42b3 0%, #442780 100%); transform:translateY(-1px); box-shadow:0 0 15px rgba(155,109,255,0.4); }
+
+.class-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 2rem 0; text-align: left; }
+.class-card { background: rgba(10, 8, 15, 0.6); border: 1px solid var(--iron-grey); border-radius: 5px; padding: 1rem; cursor: pointer; transition: all 0.25s ease; position: relative; }
+.class-card:hover { border-color: var(--purple); background: rgba(25, 20, 40, 0.4); transform: translateY(-2px); }
+.class-card.selected { border-color: var(--gold-bright); background: rgba(40, 30, 15, 0.3); box-shadow: 0 0 15px rgba(200, 146, 42, 0.2); }
+.class-card h3 { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--gold-bright); margin-bottom: 0.3rem; display: flex; justify-content: space-between; align-items: center; }
+.class-card .class-icon { font-size: 1.3rem; }
+.class-card .class-desc { font-size: 0.9rem; color: var(--cream-muted); line-height: 1.4; margin-bottom: 0.8rem; height: 65px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.class-stats { display: flex; justify-content: space-between; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; border-top: 1px dashed var(--iron-grey); padding-top: 0.6rem; color: var(--gold-pale); }
+
+#game{display:none;flex-direction:column;min-height:100vh}
+#progress-bar{ background: linear-gradient(0deg, #09080d 0%, #1a1721 100%); border-bottom: 2px solid var(--iron-grey); padding:0.7rem 1.5rem; display:flex; align-items:center; gap:1.5rem; overflow-x:auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 100; }
+.progress-logo{ font-family:'Cinzel',serif; font-size:0.85rem; color:var(--gold); white-space:nowrap; letter-spacing:0.2em; flex-shrink:0; font-weight:700; }
+.chapter-pips{ display:flex; gap:10px; flex:1; }
+.cpip{ display:flex; align-items:center; gap:8px; padding:0.4rem 0.9rem; border-radius:4px; border:1px solid var(--iron-grey); font-family:'Cinzel',serif; font-weight:600; font-size:0.8rem; color:var(--cream-muted); white-space:nowrap; transition:all 0.3s; background: rgba(0,0,0,0.3); }
+.cpip.active{ border-color:var(--chapter-color,var(--purple)); color:var(--chapter-color,var(--purple)); background:rgba(155,109,255,0.08); box-shadow: 0 0 10px rgba(155,109,255,0.15); text-shadow: 0 0 5px var(--chapter-color); }
+.cpip.done{ border-color:var(--chapter-color); color:var(--cream-muted); opacity:0.5; }
+.cpip.done::before{content:'✓ '; color: var(--green-c);}
+.stats-badge-container { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.stat-mini-pill { background: rgba(0,0,0,0.4); border: 1px solid var(--iron-grey); padding: 0.3rem 0.7rem; border-radius: 4px; font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 600; transition: color 0.3s; }
+
+.icon-btn { cursor: pointer; background: transparent; border-color: var(--gold); color: var(--gold-pale); padding: 0.3rem 0.7rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.icon-btn:hover { background: rgba(210,170,80,0.1); transform: scale(1.05); }
+.icon-btn.muted { opacity: 0.5; border-color: var(--iron-grey); color: var(--cream-muted); }
+
+#mana-badge { color: var(--blue-c); }
+
+#game-main{ flex:1; display:grid; grid-template-columns:1fr 450px; gap:0; max-height:calc(100vh - 56px); transition: transform 0.1s; }
+.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+
+#story-panel{ background: radial-gradient(ellipse at center, rgba(20,18,28,1) 0%, rgba(13,11,16,1) 100%); padding:3rem; overflow-y:auto; display:flex; flex-direction:column; gap:1.2rem; border-right: 2px solid var(--iron-grey); position: relative; }
+#chapter-badge{ font-family:'Cinzel',serif; font-size:0.9rem; letter-spacing:0.25em; text-transform:uppercase; font-weight:700; display:flex; align-items:center; gap:12px; margin-bottom: 0.5rem;}
+#chapter-badge::after{ content:''; flex:1; height:2px; background: linear-gradient(90deg, var(--iron-grey), transparent); }
+#narrative-text{ animation:fadeIn 0.6s ease both; }
+#narrative-text p{ font-size:1.15rem; line-height:1.8; margin-bottom:1.4rem; color: #f2ebd9; }
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.story-illustration { display: flex; justify-content: center; align-items: center; height: 140px; margin: 1rem 0 2rem 0; opacity: 0; animation: glowIn 1.5s ease forwards 0.3s; }
+.story-illustration svg { height: 100%; width: auto; max-width: 100%; filter: drop-shadow(0 0 15px rgba(155, 109, 255, 0.2)); }
+@keyframes glowIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 0.85; transform: scale(1); } }
+
+#choices-container{ display:flex; flex-direction:column; gap:12px; margin-top:auto;}
+.choice-btn{ padding:1rem 1.5rem; background: linear-gradient(135deg, rgba(30,25,45,0.6) 0%, rgba(13,11,16,0.8) 100%); border:1px solid var(--iron-grey); border-radius:6px; color:var(--cream); font-family:'Crimson Text',serif; font-size:1.1rem; font-weight:600; cursor:pointer; text-align:left; transition:all 0.2s ease; }
+.choice-btn:hover:not(:disabled){ border-color:rgba(155,109,255,0.6); background: linear-gradient(135deg, rgba(40,35,55,0.8) 0%, rgba(18,16,22,1) 100%); transform:translateX(6px); color: var(--gold-pale); }
+.choice-btn:disabled{opacity:0.5;cursor:default}
+.choice-btn.correct{border-color:#4caf7d;background:rgba(76,175,125,0.1);color:#7de8a8;}
+.choice-btn.incorrect{border-color:#ff6b6b;background:rgba(255,107,107,0.1);color:#ff9999;}
+.continue-btn{ margin-top:10px; border-color:var(--gold) !important; background: linear-gradient(180deg, rgba(200,146,42,0.1) 0%, rgba(0,0,0,0.5) 100%) !important; color:var(--gold-bright) !important; text-align:center !important; font-family: 'Cinzel', serif !important; text-transform: uppercase; letter-spacing: 0.1em; }
+
+.quiz-feedback{ padding:1rem; border-radius:6px; font-size:1rem; line-height:1.6; margin-top:5px; animation:fadeIn 0.4s ease both; }
+.quiz-feedback.correct{ background: rgba(76,175,125,0.08); border: 1px solid rgba(76,175,125,0.2); color: #7de8a8; }
+.quiz-feedback.incorrect{ background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.2); color: #ff9999; }
+
+#code-panel{ background:var(--bg-code); border-left:2px solid var(--iron-grey); display:flex; flex-direction:column; overflow:hidden; }
+.code-header{ padding:1rem 1.25rem 0.8rem; border-bottom:1px solid var(--border-dim); display:flex; align-items:center; gap:12px; background: rgba(0,0,0,0.2); }
+.code-header-icon{ width:10px;height:10px;border-radius:50%; background:var(--chapter-accent,var(--purple)); flex-shrink:0; box-shadow: 0 0 8px var(--chapter-accent,var(--purple)); animation: pulseCode 2s infinite; }
+@keyframes pulseCode { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
+
+#code-title{ font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--purple); letter-spacing:0.05em; flex:1; font-weight:500; }
+.code-wrap { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 1.5rem; 
+}
+#code-content{ font-family:'JetBrains Mono',monospace; font-size:0.85rem; line-height:1.75; white-space:pre-wrap; word-break:break-word; opacity: 0; animation: codeReveal 0.5s forwards ease-in; }
+@keyframes codeReveal { to { opacity: 1; } }
+
+.c-comment{color:var(--grey-c);font-style:italic}
+.c-keyword{color:var(--purple-c)}
+.c-string{color:var(--green-c)}
+.c-number{color:var(--orange-c)}
+.c-function{color:var(--blue-c)}
+
+.code-explanation{ padding:1.25rem 1.5rem; border-top:1px solid var(--border-dim); font-size:0.9rem; color:var(--cream-muted); line-height:1.6; background: rgba(0,0,0,0.2); }
+.code-explanation code{ font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--purple-c); background:rgba(155,109,255,0.08); padding:2px 6px; border-radius:3px; }
+
+.console-output { background: #000; border-top: 1px solid var(--iron-grey); padding: 1rem 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--green-c); min-height: 60px; display: none; }
+.console-output::before { content: '>_ '; color: var(--grey-c); }
+.typewriter { overflow: hidden; white-space: nowrap; border-right: 2px solid var(--green-c); animation: typing 1s steps(30, end), blink-caret .75s step-end infinite; }
+@keyframes typing { from { max-width: 0 } to { max-width: 100% } }
+@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--green-c); } }
+
+.quiz-badge{ background:rgba(210,170,80,0.07); border:1px solid var(--border-gold); color:var(--gold-bright); padding:0.4rem 0.8rem; display:inline-block; font-family:'Cinzel',serif; font-size:0.8rem; border-radius:4px; margin-bottom:1rem; letter-spacing:0.05em;}
+
+#grimorio-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+.grimorio-content { background: radial-gradient(ellipse at center, rgba(30,25,40,1) 0%, rgba(15,12,20,1) 100%); border: 2px solid var(--gold); border-radius: 8px; width: 90%; max-width: 500px; padding: 2rem; position: relative; box-shadow: 0 0 30px rgba(200, 146, 42, 0.2); }
+.grimorio-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: var(--gold); cursor: pointer; }
+.grimorio-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--iron-grey); padding-bottom: 1rem; margin-bottom: 1rem; }
+.grimorio-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; }
+.grimorio-info h2 { font-family: 'Cinzel', serif; color: var(--gold-bright); font-size: 1.3rem; margin-bottom: 0.2rem; }
+.grimorio-info p { color: var(--purple-c); font-size: 0.9rem; margin: 0; }
+.runes-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;}
+.rune-item { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: 4px; border: 1px solid var(--iron-grey); color: var(--cream-muted); opacity: 0.5; }
+.rune-item.unlocked { opacity: 1; border-color: var(--purple); color: var(--cream); background: rgba(155,109,255,0.05); }
+
+#reset-game-btn { background: rgba(255, 107, 107, 0.1); border: 1px dashed var(--red-c); color: var(--red-c); width: 100%; font-size: 0.85rem; padding: 0.8rem; }
+#reset-game-btn:hover { background: rgba(255, 107, 107, 0.3); color: #fff; }
+
+@media(max-width:720px){
+  #game-main{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  #code-panel{max-height:300px; border-left:none; border-top:2px solid var(--iron-grey);}
+}
+</style>
+</head>
+<body>
+
+<audio id="bg-audio" loop preload="auto">
+  <source src="https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lord%20of%20the%20Land.mp3" type="audio/mpeg">
+</audio>
+
+<div id="resume-screen">
+  <div class="panel-inner">
+    <span class="welcome-rune">⟢ ✦ ⟣</span>
+    <h1 class="welcome-title">Santuario Encontrado</h1>
+    <p style="font-size:1.1rem; color:var(--cream-muted); margin-bottom:2rem;">Hemos detectado un alma vinculada en este navegador. ¿Deseas reanudar tu aprendizaje?</p>
+    <button class="btn-prime" id="resume-btn" style="margin-bottom: 1rem;">✧ Continuar Aventura</button>
+    <br>
+    <button class="choice-btn incorrect" id="hard-reset-btn" style="width: auto; margin:0 auto; font-size:0.8rem; padding:0.5rem 1rem;">💀 Empezar desde cero</button>
+  </div>
+</div>
+
+<div id="welcome">
+  <div class="panel-inner">
+    <span class="welcome-rune">⟢ ✦ ⟣</span>
+    <h1 class="welcome-title">Codex Arcanum</h1>
+    <p style="font-style:italic; color:var(--cream-muted); font-size:1.2rem; margin-bottom:2rem;">El Aprendiz del Código</p>
+    <p style="font-size:1.05rem; margin-bottom:2.5rem; opacity:0.9;">Una aventura interactiva de 50 niveles para aprender a programar. Escribe, compila y sobrevive.</p>
+    
+    <div class="input-row">
+      <div class="input-col">
+        <label>Identidad de tu Alma</label>
+        <input type="text" id="player-name" class="input-styled" placeholder="Tu nombre..." maxlength="20">
+      </div>
+      <div class="input-col">
+        <label>Origen (Género)</label>
+        <select id="player-gender" class="input-styled">
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
+          <option value="X">Ente Neutro</option>
+        </select>
+      </div>
+      <div class="input-col">
+        <label>Retrato (Magia del Marco)</label>
+        <div class="avatar-upload-box">
+          <input type="file" id="avatar-file" accept="image/*">
+          <img id="avatar-preview-home" class="avatar-preview-circle" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b4dbb'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E">
+          <span style="font-size:0.75rem; color:var(--cream-muted);">Sube tu foto. El sistema creará un Token RPG.</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-prime" id="to-classes-btn">✧ Despertar en el Santuario</button>
+  </div>
+</div>
+
+<div id="class-selection">
+  <div class="panel-inner">
+    <span class="section-rune">⚡ SELECCIÓN DE CLASE ⚡</span>
+    <h2 class="section-title">Elige tu Origen Rúnico</h2>
+    <p style="color:var(--cream-muted); margin-bottom:0.5rem; font-size: 1rem;">Tu clase determinará la forma en la que te enfrentarás a la oscuridad del código.<br>Todos sufren y aprenden el mismo camino, pero su estilo difiere.</p>
+    <div class="class-grid" id="class-grid-container"></div>
+    <button class="btn-prime" id="start-game-btn" style="width: 100%; max-width: 400px; margin-top: 1rem;">✦ Iniciar Pacto de Sangre Digital</button>
+  </div>
+</div>
+
+<div id="game">
+  <div id="progress-bar">
+    <span class="progress-logo">⟢ CODEX</span>
+    <div class="chapter-pips">
+      <div class="cpip" data-ch="0" style="--chapter-color:var(--ch0)">🧠 Lógica</div>
+      <div class="cpip" data-ch="1" style="--chapter-color:var(--ch1)">📦 Variables</div>
+      <div class="cpip" data-ch="2" style="--chapter-color:var(--ch2)">🔠 Tipos</div>
+      <div class="cpip" data-ch="3" style="--chapter-color:var(--ch3)">⚔️ Caminos</div>
+      <div class="cpip" data-ch="4" style="--chapter-color:var(--ch4)">🔄 Ciclos</div>
+    </div>
+    <div class="stats-badge-container">
+      <button id="grimorio-btn" class="stat-mini-pill icon-btn" title="Abrir Grimorio">📜</button>
+      <button id="music-toggle-btn" class="stat-mini-pill icon-btn muted" title="Activar/Silenciar Música">🔇</button>
+      <div id="nav-avatar-container" class="nav-avatar-container" style="display:none;">
+        <img id="nav-avatar-img" class="nav-avatar-img" src="">
+      </div>
+      <span id="level-badge" class="stat-mini-pill" style="color:var(--gold-bright);">Nivel 1/50</span>
+      <span id="mana-badge" class="stat-mini-pill">Puntos de Magia: 100</span>
+    </div>
+  </div>
+
+  <div id="game-main">
+    <div id="story-panel">
+      <div id="chapter-badge"></div>
+      <div id="narrative-text"></div>
+      <div id="story-illustration-container" class="story-illustration"></div>
+      <div id="choices-container"></div>
+    </div>
+    <div id="code-panel">
+      <div class="code-header">
+        <div class="code-header-icon" id="code-dot"></div>
+        <div id="code-title">Terminal del Santuario</div>
+      </div>
+      <div class="code-wrap"><pre id="code-content"></pre></div>
+      <div class="code-explanation" id="code-explanation"></div>
+      <div id="console-panel" class="console-output"><span id="console-text"></span></div>
+    </div>
+  </div>
+</div>
+
+<div id="grimorio-modal">
+  <div class="grimorio-content">
+    <span class="grimorio-close" id="close-grimorio">&times;</span>
+    <div class="grimorio-header">
+      <div id="modal-avatar-container" class="nav-avatar-container" style="width:70px; height:70px;">
+        <img id="modal-avatar" class="nav-avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8922a'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E">
+      </div>
+      <div class="grimorio-info">
+        <h2 id="modal-name">Nombre</h2>
+        <p id="modal-class">Clase</p>
+      </div>
+    </div>
+    <h3 style="font-family:'Cinzel',serif; font-size:1rem; margin-bottom:10px; color:var(--cream);">Runas de Conocimiento</h3>
+    <div class="runes-list">
+      <div class="rune-item" id="rune-0">🧠 Estructura Lógica (Algoritmos)</div>
+      <div class="rune-item" id="rune-1">📦 Manipulación de Memoria (Variables)</div>
+      <div class="rune-item" id="rune-2">🔠 Alquimia Primitiva (Tipos de Datos)</div>
+      <div class="rune-item" id="rune-3">⚔️ Bifurcación del Destino (If/Else)</div>
+      <div class="rune-item" id="rune-4">🔄 La Rueda del Tiempo (Ciclos FOR)</div>
+    </div>
+    <button id="reset-game-btn" class="choice-btn">💀 Purgar Memoria (Reiniciar Juego)</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAYV1EGOP4vOlQwNnNBh2SdETAOsbDdWJQ",
+  authDomain: "codexarcanum-3c89e.firebaseapp.com",
+  projectId: "codexarcanum-3c89e",
+  storageBucket: "codexarcanum-3c89e.firebasestorage.app",
+  messagingSenderId: "154003457548",
+  appId: "1:154003457548:web:05698959fef96972529029"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUserUid = null;
+let isPlaying = false; 
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function initAudio() { if(!audioCtx) { audioCtx = new AudioContext(); } }
+
+function playSfx(type) {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+
+  if (type === 'click') {
+    osc.type = 'sine'; osc.frequency.setValueAtTime(400, now);
+    gainNode.gain.setValueAtTime(0.1, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    osc.start(now); osc.stop(now + 0.1);
+  } else if (type === 'correct') {
+    osc.type = 'triangle'; 
+    osc.frequency.setValueAtTime(440, now);      
+    osc.frequency.setValueAtTime(554.37, now + 0.1); 
+    osc.frequency.setValueAtTime(659.25, now + 0.2); 
+    gainNode.gain.setValueAtTime(0.2, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    osc.start(now); osc.stop(now + 0.5);
+  } else if (type === 'wrong') {
+    osc.type = 'sawtooth'; 
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+    gainNode.gain.setValueAtTime(0.2, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    osc.start(now); osc.stop(now + 0.3);
+  }
+}
+
+const SVG_LIBRARY = {
+  'golem': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--iron-grey)" stroke-width="3"><rect x="30" y="20" width="40" height="50" rx="4" fill="var(--bg-panel)"/><circle cx="40" cy="40" r="4" fill="var(--red-c)" stroke="none"/><circle cx="60" cy="40" r="4" fill="var(--red-c)" stroke="none"/><path d="M40 60 h20" stroke="var(--gold-pale)" stroke-width="4" stroke-linecap="round"/><path d="M30 30 h-10 v20 M70 30 h10 v20"/></svg>`,
+  'scroll': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--gold-pale)" stroke-width="3" stroke-linecap="round"><path d="M25 20 Q50 10 75 20 V80 Q50 70 25 80 Z" fill="rgba(210,170,80,0.05)"/><path d="M35 35 h30 M35 50 h20 M35 65 h30" stroke="var(--purple-c)"/><circle cx="75" cy="20" r="4" fill="var(--gold)"/></svg>`,
+  'bug': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--red-c)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="50" cy="55" rx="15" ry="25" fill="rgba(255,100,100,0.1)"/><circle cx="50" cy="25" r="8"/><path d="M50 33 v47 M35 45 l-10 -10 M65 45 l10 -10 M32 60 h-12 M68 60 h12 M38 75 l-10 10 M62 75 l10 10 M45 15 l-5 -10 M55 15 l5 -10"/></svg>`,
+  'chest': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--gold)" stroke-width="3" stroke-linejoin="round"><path d="M20 45 v35 h60 v-35" fill="var(--bg-panel)"/><path d="M20 45 C20 20, 80 20, 80 45 Z" fill="rgba(210,170,80,0.1)"/><path d="M20 45 h60"/><circle cx="50" cy="45" r="6" fill="var(--bg-main)" stroke="var(--purple-c)"/><path d="M50 45 v5" stroke="var(--purple-c)"/></svg>`,
+  'shield': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--blue-c)" stroke-width="3" stroke-linejoin="round"><path d="M50 15 L20 25 V50 C20 75, 50 90, 50 90 C50 90, 80 75, 80 50 V25 Z" fill="rgba(121, 180, 245, 0.1)"/><path d="M50 15 v75 M20 35 h60"/></svg>`,
+  'sword': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--iron-grey)" stroke-width="4" stroke-linecap="round"><path d="M50 10 L45 80 L50 95 L55 80 Z" fill="var(--cream-muted)"/><path d="M35 25 h30" stroke="var(--gold)" stroke-width="6"/><circle cx="50" cy="15" r="4" fill="var(--purple)"/></svg>`,
+  'potion': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--green-c)" stroke-width="3" stroke-linejoin="round"><path d="M40 20 h20 v10 l15 25 v25 a10 10 0 0 1 -10 10 h-30 a10 10 0 0 1 -10 -10 v-25 l15 -25 Z" fill="rgba(109, 222, 154, 0.15)"/><path d="M35 60 h30 M45 40 h10" stroke="var(--green-c)"/></svg>`,
+  'door': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--iron-grey)" stroke-width="4"><path d="M20 90 V45 A30 30 0 0 1 80 45 V90" fill="var(--bg-panel)"/><path d="M50 30 v60" stroke="var(--iron-grey)"/><circle cx="43" cy="65" r="3" fill="var(--gold)" stroke="none"/><circle cx="57" cy="65" r="3" fill="var(--gold)" stroke="none"/></svg>`,
+  'hourglass': `<svg viewBox="0 0 100 100" fill="none" stroke="var(--purple)" stroke-width="3" stroke-linejoin="round"><path d="M30 15 h40 v10 L50 50 L70 75 v10 h-40 v-10 L50 50 L30 25 Z" fill="rgba(155, 109, 255, 0.05)"/><path d="M30 15 h40 M30 85 h40" stroke="var(--gold)" stroke-width="5"/><path d="M40 75 v10 M50 60 v25 M60 75 v10" stroke="var(--purple-c)" opacity="0.6"/></svg>`
+};
+
+const CLASSES_DATA = [
+  { id: 'caballero', name: { M: 'Caballero de Hierro', F: 'Dama de Hierro', X: 'Guardián de Hierro' }, icon: '🛡️', desc: 'Fuerte y resistente. Tu armadura pesada te protege de los errores de sintaxis.', manaBonus: 10, flavor: 'tu disciplina marcial', weapon: 'tu pesada espada' },
+  { id: 'hechicero', name: { M: 'Hechicero Arcano', F: 'Hechicera Arcana', X: 'Ente Arcano' }, icon: '🔮', desc: 'Estudioso de la red. Tienes gran conocimiento pero eres frágil ante los bugs.', manaBonus: 20, flavor: 'tu vasto intelecto', weapon: 'tu catalizador' },
+  { id: 'piromantico', name: { M: 'Piromántico', F: 'Piromántica', X: 'Alma Piromántica' }, icon: '🔥', desc: 'Manipulador del fuego. Te gusta ver arder la consola con bucles infinitos.', manaBonus: 15, flavor: 'tu caos destructivo', weapon: 'tu llama primitiva' },
+  { id: 'clerigo', name: { M: 'Clérigo', F: 'Clériga', X: 'Hereje Redimido' }, icon: '☀️', desc: 'Creyente estricto. Tus milagros sanan el código corrupto de tus aliados.', manaBonus: 5, flavor: 'tu fe en el código', weapon: 'tu talismán' },
+  { id: 'marginado', name: { M: 'Marginado', F: 'Marginada', X: 'Ser Marginado' }, icon: '🪵', desc: 'Un alma desnuda sin ventajas. Equipado solo con un humilde garrote.', manaBonus: 0, flavor: 'tu instinto animal', weapon: 'tu viejo garrote' }
+];
+
+const STAGE_TREE = {
+  0: { // LÓGICA
+    concept: 'Lógica Base', title: 'Cap. I: El Golem', icon: '🧠', color: '#9b6dff', startNode: 'c0_1',
+    nodes: {
+      'c0_1': { img: 'golem', type: 'story', codeTitle: 'Iniciando Sistema...', code: `// Estado: Esperando al {TITLE}...`, codeExp: 'Las computadoras no piensan por sí solas.', text: `{WELCOME}, {NAME}. Has entrado al santuario como un(a) **{CLASS_NAME}**.\n\nMientras otros confían en manuales antiguos, tú sobrevivirás usando {CLASS_FLAVOR}.\n\nPara aprender a programar, debes entender que la computadora es como un Golem de Piedra: tiene una fuerza brutal, pero cero inteligencia. No asume nada. Hace exactamente lo que le dices.`, choices: [{ text: 'Entendido. Yo debo darle la inteligencia.', next: 'c0_2' }] },
+      'c0_2': { img: 'scroll', type: 'story', codeTitle: 'Algoritmo_01', code: `// Tarea: Caminar\n1. Levantar pie derecho\n2. Avanzar pie derecho\n3. Bajar pie derecho\n4. Repetir con el izquierdo`, codeExp: 'Un Algoritmo es una receta. Pasos ordenados para lograr un objetivo.', text: `Si quieres que el Golem camine, no puedes decirle "Camina". Tienes que darle una secuencia de pasos lógicos minúsculos.\n\nA esta lista de pasos ordenados y exactos la llamamos **Algoritmo**.`, choices: [{ text: 'Hacer el primer desafío de algoritmos', next: 'c0_3' }] },
+      'c0_3': { img: 'potion', type: 'quiz', retryNode: 'c0_2', question: '¿Cuál de estas es un "Algoritmo" correcto para decirle al Golem que prepare una poción de curación?', opts: [
+        { t: 'Hazme una poción rápida, Golem.', ok: false, fb: 'Recuerda que el Golem no sabe qué es una poción ni qué es rápido.' },
+        { t: '1. Calentar agua. 2. Poner hierbas. 3. Servir.', ok: true, fb: '¡Exacto! Dividiste un problema grande en pasos pequeños y secuenciales.' }
+      ], codeTitle: 'Analizando lógica', code: `// Validando receta...`, codeExp: 'Programar es 80% pensar los pasos, 20% escribirlos.', nextNode: 'c0_4' },
+      'c0_4': { img: 'sword', type: 'story', codeTitle: 'Peligro de ambigüedad', code: `// Instrucción: "Tráeme mi arma"\n// Resultado: El Golem destruye la pared para buscarla.`, codeExp: 'Las máquinas no entienden el contexto ni el sentido común.', text: `El Golem es muy obediente, pero extremadamente literal.\n\nSi tu algoritmo es ambiguo (no es claro), la máquina hará un desastre intentando adivinar. La especificidad es el arma más fuerte de cualquier **{CLASS_NAME}**.`, choices: [{ text: 'Avanzar al desafío de ambigüedad', next: 'c0_5' }] },
+      'c0_5': { img: 'shield', type: 'quiz', retryNode: 'c0_4', question: 'Si le dices al Golem: "Lava mi armadura hasta que brille", ¿Cuál es el riesgo mortal?', opts: [
+        { t: 'Que se canse y deje de trabajar.', ok: false, fb: 'Las máquinas no se cansan físicamente.' },
+        { t: 'Que talle la armadura por la eternidad.', ok: true, fb: 'Al no decirle cómo medir el brillo, se quedará atrapado en un bucle infinito.' }
+      ], codeTitle: 'Evaluando riesgos', code: `// Validando instrucción...`, codeExp: 'Debes definir condiciones de parada claras.', nextNode: 'c0_6' },
+      'c0_6': { img: 'bug', type: 'story', codeTitle: 'Definición de Bug', code: `// 1. Abrir cofre\n// 2. Revisar botín\n// 3. Quitar trampa del cofre\n// ERROR CRITICO EN PASO 1 (Muerte)`, codeExp: 'Un Bug (bicho) es un error lógico introducido por el humano, no por la máquina.', text: `Cuando te equivocas en el orden de tu Algoritmo, ocurre un **Bug** (Error).\n\nSi le dices al Golem que abra un cofre maldito ANTES de desactivar la trampa, el sistema colapsará. La culpa siempre es del {TITLE}, nunca de la máquina.`, choices: [{ text: 'Buscar bugs letales', next: 'c0_7' }] },
+      'c0_7': { img: 'sword', type: 'quiz', retryNode: 'c0_6', question: 'Observa el código de la derecha. ¿Cuál es el Bug lógico que arruina el proceso?', opts: [
+        { t: 'Se intenta equipar el arma antes de forjarla.', ok: true, fb: 'Perfecto. No puedes equipar un arma que se forja en el paso 3.' },
+        { t: 'El hierro no existe en este reino.', ok: false, fb: 'Ese no es el problema. El problema es el orden temporal.' }
+      ], codeTitle: 'Herrería.exe', code: `1. Tomar hierro\n2. Equipar arma\n3. Forjar arma`, codeExp: 'El orden de ejecución importa. El código se lee de arriba hacia abajo.', nextNode: 'c0_8' },
+      'c0_8': { img: 'scroll', type: 'story', codeTitle: 'Idioma de la Máquina', code: `// Español: Guardar almas = 10\n// JavaScript:\nlet almas = 10;`, codeExp: 'La Sintaxis son las reglas gramaticales de un lenguaje.', text: `Una vez que tienes los pasos lógicos, debes traducirlos para el Golem.\n\nPara ello usamos un "Lenguaje de Programación" (**JavaScript**). Aprender a programar es simplemente aprender el vocabulario (sintaxis) para hablar con los dioses de la máquina.`, choices: [{ text: 'Continuar', next: 'c0_9' }] },
+      'c0_9': { img: 'scroll', type: 'story', codeTitle: 'La Consola', code: `console.log("Hola Golem");`, codeExp: 'console.log() imprime texto en pantalla de forma directa.', consoleText: '> Hola Golem', text: `La herramienta básica que usarás es la Consola.\n\nPara pedirle al Golem que te muestre un resultado, usas el hechizo \`console.log()\`. Observa abajo, el terminal mostrará mágicamente la respuesta.`, choices: [{ text: 'Realizar examen del Capítulo', next: 'c0_10' }] },
+      'c0_10': { img: 'golem', type: 'quiz', retryNode: 'c0_9', question: 'En resumen, para sobrevivir en este mundo, ¿Qué significa programar?', opts: [
+        { t: 'Escribir matemáticas complejas.', ok: false, fb: 'No se trata de matemáticas, se trata de estructura.' },
+        { t: 'Darle pasos lógicos y exactos a una máquina.', ok: true, fb: '¡Felicidades! Has dominado la base de la ingeniería.' }
+      ], codeTitle: 'Evaluación', code: `// Validando alma de {NAME}...`, codeExp: 'Estás listo para escribir código real.', nextChapter: 1 }
+    }
+  },
+  1: { // VARIABLES
+    concept: 'Variables', title: 'Cap. II: Las Cajas', icon: '📦', color: '#5ba8ff', startNode: 'c1_1',
+    nodes: {
+      'c1_1': { img: 'chest', type: 'story', codeTitle: 'Amnesia Digital', code: `// Jefe muerto.\n// Golem: "¿Cuántas almas dio?"\n// Golem: "Lo olvidé."`, codeExp: 'La máquina olvida los datos instantáneamente si no los guardas.', text: `El Golem obedece, pero tiene Amnesia.\n\nComo **{CLASS_NAME}**, empuñar {CLASS_WEAPON} no sirve si olvidas en qué nivel estás. Para que la máquina recuerde tus almas, debes usar la **Memoria**.`, choices: [{ text: 'Aprender a guardar datos', next: 'c1_2' }] },
+      'c1_2': { img: 'chest', type: 'story', codeTitle: 'Creando Cajas (let)', code: `let almas = 50;\nlet nombre = "{NAME}";`, codeExp: 'let crea un espacio en la memoria RAM.', text: `En programación, llamamos a la memoria **Variables**.\n\nImagina una variable como un **Cofre**. Usamos la palabra \`let\` para invocarlo, le escribimos un nombre, y le metemos un dato usando el signo igual (\`=\`).`, choices: [{ text: 'Revisar la sintaxis', next: 'c1_3' }] },
+      'c1_3': { img: 'chest', type: 'quiz', retryNode: 'c1_2', question: '¿Cuál código crea un cofre llamado "vidas" y le guarda un 3?', opts: [
+        { t: 'vidas = 3 let;', ok: false, fb: 'El conjuro "let" siempre va al inicio.' },
+        { t: 'let vidas = 3;', ok: true, fb: 'Perfecto. Creas la caja (let), la llamas (vidas) y le asignas (=) un tres.' }
+      ], codeTitle: 'Sintaxis', code: `// ...`, codeExp: 'El punto y coma ; es como respirar al terminar una oración.', nextNode: 'c1_4' },
+      'c1_4': { img: 'scroll', type: 'story', codeTitle: 'Reglas de Etiquetado', code: `let nivelJugador = 5;\n// let 1nivel = 5; // ERROR`, codeExp: 'Usa "camelCase": primera minúscula, siguientes Mayúscula.', text: `Tú decides cómo se llaman tus cofres, pero el sistema castiga los malos nombres:\n\n1. NUNCA llevan espacios.\n2. No pueden empezar con números.\n3. Usamos la técnica "camello" (camelCase): \`puntosDeVida\`.`, choices: [{ text: 'Validar nombres', next: 'c1_5' }] },
+      'c1_5': { img: 'bug', type: 'quiz', retryNode: 'c1_4', question: 'Quieres guardar tu velocidad. ¿Cuál es un nombre válido?', opts: [
+        { t: 'let velocidad esquive = 10;', ok: false, fb: '¡Espacio detectado!' },
+        { t: 'let velocidadEsquive = 10;', ok: true, fb: '¡Impecable! Respeta camelCase.' }
+      ], codeTitle: 'Gramática', code: `// Validando etiqueta...`, codeExp: 'Un mal nombre rompe el código al instante.', nextNode: 'c1_6' },
+      'c1_6': { img: 'potion', type: 'story', codeTitle: 'Actualizar Memoria', code: `let pociones = 10;\npociones = 5;`, codeExp: 'Una vez creada con let, no necesitas repetir let para cambiar su valor.', text: `Las cajas \`let\` se pueden abrir en el futuro para cambiar lo que tienen.\n\nSi usas una poción, escribes el nombre de la caja y le asignas el nuevo valor. El valor antiguo desaparece en el vacío.`, choices: [{ text: 'Cambiar valores', next: 'c1_7' }] },
+      'c1_7': { img: 'potion', type: 'quiz', retryNode: 'c1_6', question: '¿Qué valor tendrá "almas" al final?', opts: [
+        { t: '15', ok: true, fb: 'Correcto. Inicia con 5, se vacía y se llena con un 15.' },
+        { t: '20', ok: false, fb: 'El signo = NO suma, reemplaza de forma destructiva.' }
+      ], codeTitle: 'Mutación', code: `let almas = 5;\nalmas = 15;`, codeExp: 'Reasignar es la base del daño y el inventario.', nextNode: 'c1_8' },
+      'c1_8': { img: 'shield', type: 'story', codeTitle: 'Caja Fuerte (const)', code: `const jefe = "Dragón";\n// jefe = "Esqueleto"; // CRITICO!`, codeExp: 'const crea una constante inmutable.', text: `No todos los cofres deben abrirse. A veces proteges la integridad del mundo (ej. tu ID).\n\nUsamos \`const\`. Crea una caja fuerte sellada. Una vez guardado el dato, **JAMÁS** podrá ser modificado.`, choices: [{ text: 'Entendido, usaré const', next: 'c1_9' }] },
+      'c1_9': { img: 'shield', type: 'story', codeTitle: 'Arquitectura', code: `let hpJugador = 100;\nconst idMundo = 8892;`, codeExp: '¿Esto va a mutar o será permanente?', text: `Saber cuándo usar cofres abiertos (\`let\`) y cajas fuertes (\`const\`) separa a un alma en pena de un **{CLASS_NAME}** legendario.\n\nUna mala elección permite que un invasor modifique tu mundo.`, choices: [{ text: 'Avanzar al examen final', next: 'c1_10' }] },
+      'c1_10': { img: 'chest', type: 'quiz', retryNode: 'c1_9', question: '¿Cómo guardarías tu Barra de Estamina y el Nombre del Jefe Final?', opts: [
+        { t: 'let para Estamina, const para Jefe', ok: true, fb: '¡Brillante! La estamina fluctúa, el jefe es estático.' },
+        { t: 'const para ambos', ok: false, fb: 'Con const en Estamina, jamás podrías correr.' }
+      ], codeTitle: 'Examen de Variables', code: `// Forjando...`, codeExp: 'Usa const siempre por defecto.', nextChapter: 2 }
+    }
+  },
+  2: { // TIPOS
+    concept: 'Tipos Primitivos', title: 'Cap. III: La Esencia', icon: '🔠', color: '#4caf7d', startNode: 'c2_1',
+    nodes: {
+      'c2_1': { img: 'potion', type: 'story', codeTitle: 'La Esencia', code: `let x = 5;\nlet y = "5";`, codeExp: 'Un número y un texto son cosas distintas.', text: `Ya tienes cofres, pero debes entender qué esencia metes en ellos.\n\nPara nosotros, el 5 y "cinco" son lo mismo. Para la máquina, sus **Tipos de Datos** son distintos. Mezclarlos es un desastre.`, choices: [{ text: 'Ver los tipos', next: 'c2_2' }] },
+      'c2_2': { img: 'sword', type: 'story', codeTitle: 'Numeros (Numbers)', code: `let fuerza = 10;\nlet daño = fuerza * 2;\nconsole.log(daño);`, codeExp: 'Numbers: sin comillas, para matemáticas.', consoleText: '> 20', text: `El primer tipo es **Number**.\n\nSe escriben desnudos. Permiten a la computadora calcular daño, sumar (+), restar (-), multiplicar (*) y dividir (/).`, choices: [{ text: 'Aprobar matemáticas', next: 'c2_3' }] },
+      'c2_3': { img: 'sword', type: 'quiz', retryNode: 'c2_2', question: 'let a = 10 y let b = 2. ¿Qué es c = a * b?', opts: [
+        { t: '12', ok: false, fb: '* es multiplicar, no sumar.' },
+        { t: '20', ok: true, fb: 'Correcto. Matemáticas puras.' }
+      ], codeTitle: 'Aritmética', code: `let c = 10 * 2;`, codeExp: 'Los procesadores adoran los números.', nextNode: 'c2_4' },
+      'c2_4': { img: 'scroll', type: 'story', codeTitle: 'Textos (Strings)', code: `let saludo = "Alabado sea el sol";`, codeExp: 'Strings: SIEMPRE en comillas.', text: `El segundo tipo es **String** (Cadena de texto).\n\nCualquier texto **DEBE** ir en comillas (" "). Si escribes texto sin comillas, el Golem pensará que es un hechizo desconocido y colapsará.`, choices: [{ text: 'Probar sintaxis', next: 'c2_5' }] },
+      'c2_5': { img: 'scroll', type: 'quiz', retryNode: 'c2_4', question: '¿Cuál es correcta y no te matará?', opts: [
+        { t: 'let arma = "Alabarda";', ok: true, fb: '¡Exacto! Las comillas lo hacen seguro.' },
+        { t: 'let arma = Alabarda;', ok: false, fb: 'Sin comillas, el Golem fallará.' }
+      ], codeTitle: 'Contención', code: `// ...`, codeExp: 'Olvidar comillas es el error #1.', nextNode: 'c2_6' },
+      'c2_6': { img: 'potion', type: 'story', codeTitle: 'Pegamento (+)', code: `let a = "Gran ";\nlet b = "Lobo";\nconsole.log(a + b);`, codeExp: 'Con Strings, el + es pegamento (Concatenación).', consoleText: '> Gran Lobo', text: `¿Qué pasa si usas (\`+\`) con Strings?\n\nActivas la **Concatenación**. En lugar de daño matemático, el + actúa como resina, uniendo palabras.`, choices: [{ text: 'Entendido.', next: 'c2_7' }] },
+      'c2_7': { img: 'bug', type: 'story', codeTitle: 'La Trampa Mortal', code: `let trampa = "5" + "5";\nconsole.log(trampa);`, codeExp: 'Número entre comillas = STRING.', consoleText: '> 55', text: `Aquí perecen los aprendices:\n\nSi rodeas un número con comillas (\`"5"\`), ya no es un número, es un **dibujo** de un 5. Al sumarlos, la máquina los pega: \`"55"\` (mira la consola).`, choices: [{ text: 'Evaluar mi atención', next: 'c2_8' }] },
+      'c2_8': { img: 'bug', type: 'quiz', retryNode: 'c2_7', question: '¿Qué imprimirá la consola del santuario?', opts: [
+        { t: '30', ok: false, fb: '¡Caíste! El 10 tiene comillas (String). El motor los pega.' },
+        { t: '"1020"', ok: true, fb: '¡Tu alma es fuerte! El + los junta visualmente.' }
+      ], codeTitle: 'Coerción', code: `let a = "10";\nlet b = 20;\nconsole.log(a + b);`, codeExp: 'Mezclar tipos rompe programas.', nextNode: 'c2_9' },
+      'c2_9': { img: 'door', type: 'story', codeTitle: 'Booleanos', code: `let vivo = true;`, codeExp: 'Solo true o false. Sin comillas.', text: `El tercer tipo es **Boolean**.\n\nEs la dualidad de la vida y la muerte. Solo dos valores: \`true\` (Verdadero) o \`false\` (Falso). Si pones comillas, se vuelve texto tonto.`, choices: [{ text: 'Examen de Tipos', next: 'c2_10' }] },
+      'c2_10': { img: 'door', type: 'quiz', retryNode: 'c2_9', question: '¿Cuál es un Booleano puro?', opts: [
+        { t: '"true"', ok: false, fb: 'Con comillas es String.' },
+        { t: 'false', ok: true, fb: 'Correcto. Vida o muerte pura.' }
+      ], codeTitle: 'Tipos', code: `// Check`, codeExp: 'Numbers, Strings, Booleans. La santa trinidad.', nextChapter: 3 }
+    }
+  },
+  3: { // CONDICIONALES
+    concept: 'Condicionales (If)', title: 'Cap. IV: Caminos', icon: '⚔️', color: '#ff8c42', startNode: 'c3_1',
+    nodes: {
+      'c3_1': { img: 'door', type: 'story', codeTitle: 'La Niebla', code: `let llave = true;`, codeExp: 'Los condicionales crean ramas en el código.', text: `Llegas a un muro de niebla. Hasta ahora vas en línea recta. Pero aquí debes elegir.\n\nPara enseñarle al Golem a **decidir** si tienes el Anillo (Booleano), usamos Condicionales.`, choices: [{ text: 'Aprender a decidir', next: 'c3_2' }] },
+      'c3_2': { img: 'door', type: 'story', codeTitle: 'Estructura IF', code: `if (llave == true) {\n  cruzar();\n}`, codeExp: 'if = SI sucede esto. Las {} envuelven la acción.', text: `El encantamiento es **\`if\`** ("Si...").\n\nDentro de los paréntesis va la condición. Si es verdadera, se abren las llaves \`{\}\` y se ejecuta. Si es falsa, se ignora.`, choices: [{ text: 'Probar el IF', next: 'c3_3' }] },
+      'c3_3': { img: 'door', type: 'quiz', retryNode: 'c3_2', question: 'Si nivel es 5, ¿Qué pasará?', opts: [
+        { t: 'Imprime "Puedes cruzar".', ok: false, fb: 'La condición exige nivel > 10.' },
+        { t: 'Ignora el bloque.', ok: true, fb: '¡Exacto! (5 > 10) es falso.' }
+      ], codeTitle: 'IF', code: `let nivel = 5;\nif (nivel > 10) {\n  console.log("Cruzar");\n}`, codeExp: '> es mayor que.', nextNode: 'c3_4' },
+      'c3_4': { img: 'shield', type: 'story', codeTitle: 'Plan B (Else)', code: `if (fuerte) {\n  pelear();\n} else {\n  huir();\n}`, codeExp: 'else es la red de seguridad.', text: `Si el \`if\` falla, no hace nada. Pero queremos una opción de huida.\n\nAñadimos **\`else\`** (Si no...). Si el bloque de arriba falla, entra obligatoriamente al else para salvarte.`, choices: [{ text: 'Analizar ELSE', next: 'c3_5' }] },
+      'c3_5': { img: 'shield', type: 'quiz', retryNode: 'c3_4', question: 'Con nivel = 5, ¿Qué imprimirá?', opts: [
+        { t: '"Victoria"', ok: false, fb: '5 no es > 10.' },
+        { t: '"Derrota"', ok: true, fb: 'El IF falló, activando el ELSE.' }
+      ], codeTitle: 'ELSE', code: `let nivel = 5;\nif (nivel > 10) {\n  console.log("Victoria");\n} else {\n  console.log("Derrota");\n}`, codeExp: 'Solo un camino puede ser tomado.', nextNode: 'c3_6' },
+      'c3_6': { img: 'sword', type: 'story', codeTitle: 'Igualdad Absoluta', code: `// = GUARDA\n// === COMPARA`, codeExp: 'Usar = en un if destruye la variable.', text: `¿Cómo preguntas si dos cosas son EXACTAMENTE iguales?\n\n**¡No uses un solo igual (=)!** Eso aplasta datos.\nUsamos tres iguales: **\`===\`**. Significa "Idéntico a".`, choices: [{ text: 'Probar igualdad', next: 'c3_7' }] },
+      'c3_7': { img: 'sword', type: 'quiz', retryNode: 'c3_6', question: '¿Forma correcta de PREGUNTAR si el arma es Alabarda?', opts: [
+        { t: 'if (arma = "Alabarda")', ok: false, fb: 'Un solo igual reemplaza tu arma real.' },
+        { t: 'if (arma === "Alabarda")', ok: true, fb: '¡Exacto! El triple igual compara sin alterar.' }
+      ], codeTitle: 'Identidad', code: `// Preguntando...`, codeExp: 'Usa === siempre.', nextNode: 'c3_8' },
+      'c3_8': { img: 'door', type: 'story', codeTitle: 'Múltiples Caminos', code: `if (a) {}\nelse if (b) {}\nelse {}`, codeExp: 'Encadena else if antes del else final.', text: `El calabozo tiene más puertas.\n\nEncadenamos con **\`else if\`** (Pero si...). El Golem revisa de arriba a abajo, entra al primero verdadero, y salta el resto mágicamente.`, choices: [{ text: 'Ver cascada', next: 'c3_9' }] },
+      'c3_9': { img: 'door', type: 'story', codeTitle: 'Cascada', code: `if (almas > 80) {}\nelse if (almas > 20) {}`, codeExp: 'Se detiene en la primera verdad que encuentre.', text: `La clave de \`else if\` es eficiencia.\nEn cuanto encuentra una verdad, se mete y da la espalda a los caminos de abajo, sin importar qué digan.`, choices: [{ text: 'Examen de Ramas', next: 'c3_10' }] },
+      'c3_10': { img: 'shield', type: 'quiz', retryNode: 'c3_9', question: 'Si peso = 80, ¿Qué equipará?', opts: [
+        { t: 'Media', ok: true, fb: 'La 1ra es falsa. La 2da es verdadera. ¡Entra y frena!' },
+        { t: 'Ligera', ok: false, fb: 'Se detiene en la de 50 antes de llegar a la de 10.' }
+      ], codeTitle: 'Lógica', code: `if (peso > 90) equipar("Pesada");\nelse if (peso > 50) equipar("Media");\nelse if (peso > 10) equipar("Ligera");`, codeExp: 'Tu mente domina las ramificaciones.', nextChapter: 4 }
+    }
+  },
+  4: { // CICLOS
+    concept: 'Iteración', title: 'Cap. V: Repetición', icon: '🔄', color: '#c39aff', startNode: 'c4_1',
+    nodes: {
+      'c4_1': { img: 'hourglass', type: 'story', codeTitle: 'La Locura', code: `crearHueco();\n// x 1000 veces`, codeExp: 'Copiar y pegar es el mayor pecado.', text: `Último pilar.\n\nPara generar 1,000 enemigos, escribirlos a mano te volverá loco. Los creadores usan herramientas para que la máquina sufra el trabajo repetitivo.`, choices: [{ text: 'Descubrir', next: 'c4_2' }] },
+      'c4_2': { img: 'hourglass', type: 'story', codeTitle: 'Bucle FOR', code: `for (INICIO; LIMITE; AVANCE)`, codeExp: 'for = PARA un contador, repite esto.', text: `La "Rueda del Tiempo" es el **Bucle \`for\`**.\n\nAtrapa un bloque de código y lo ejecuta a la velocidad de la luz. Pero requiere 3 reglas exactas para no quemar el mundo.`, choices: [{ text: 'Aprender', next: 'c4_3' }] },
+      'c4_3': { img: 'scroll', type: 'quiz', retryNode: 'c4_2', question: '¿Por qué usamos bucles?', opts: [
+        { t: 'Ahorrar memoria y automatizar.', ok: true, fb: '¡Mentalidad de ingeniería!' },
+        { t: 'Hace el juego visualmente más rápido.', ok: false, fb: 'No afecta los FPS gráficos, solo la arquitectura.' }
+      ], codeTitle: 'Principio DRY', code: `// Don't Repeat Yourself`, codeExp: 'No te repitas.', nextNode: 'c4_4' },
+      'c4_4': { img: 'hourglass', type: 'story', codeTitle: 'Inicio', code: `for (let i = 0; ... )`, codeExp: 'i = Iterador.', text: `Regla 1: **Inicio.**\n\nCreamos un contador \`i\`. ¡ATENCIÓN! Las computadoras cuentan desde **CERO**. Iniciamos: \`let i = 0\`.`, choices: [{ text: 'Registrar', next: 'c4_5' }] },
+      'c4_5': { img: 'hourglass', type: 'quiz', retryNode: 'c4_4', question: 'El elemento 1 para la máquina, ¿Cuál es para ti?', opts: [
+        { t: 'El segundo.', ok: true, fb: '¡Correcto! El "0" es el primero.' },
+        { t: 'El primero.', ok: false, fb: '¡Cuidado! El primero es el 0.' }
+      ], codeTitle: 'El cero', code: `// 0, 1, 2`, codeExp: 'Todo arranca en 0.', nextNode: 'c4_6' },
+      'c4_6': { img: 'bug', type: 'story', codeTitle: 'Límite', code: `for (...; i < 5; ...)`, codeExp: 'Mientras i < 5 sea true, gira.', text: `Regla 2: **Límite.**\n\nDebes decirle al Golem cuándo detenerse, o girará al infinito y crasheará.\nCondición: \`i < 5\`.`, choices: [{ text: 'Entendido', next: 'c4_7' }] },
+      'c4_7': { img: 'bug', type: 'quiz', retryNode: 'c4_6', question: 'Si olvidas el límite, ¿Qué ocurre?', opts: [
+        { t: 'Bucle Infinito y crash.', ok: true, fb: 'Error catastrófico común.' },
+        { t: 'JavaScript lo apaga solo.', ok: false, fb: 'El Golem hará lo que digas hasta asfixiarse.' }
+      ], codeTitle: 'Infinito', code: `// for(let i=0; true;)`, codeExp: 'Todo ciclo debe tener un fin.', nextNode: 'c4_8' },
+      'c4_8': { img: 'sword', type: 'story', codeTitle: 'Avance', code: `for (...; ...; i++)`, codeExp: 'i++ suma 1 al terminar la vuelta.', text: `Regla 3: **Incremento.**\n\nEl contador debe subir, o nunca llegará al límite.\nSumamos 1: \`i = i + 1\` (o el atajo \`i++\`).`, choices: [{ text: 'Ver ensamblado', next: 'c4_9' }] },
+      'c4_9': { img: 'golem', type: 'story', codeTitle: 'Motor Terminado', code: `for (let i = 0; i < 3; i++) {\n  console.log("Ataque " + i);\n}`, codeExp: '0, luego 1, luego 2. ¡Frena!', consoleText: '> Ataque 0<br>> Ataque 1<br>> Ataque 2', text: `¡Ensamblado!\n1. Arranca en 0.\n2. Ejecuta y suma 1.\n3. Repite hasta 3. Como 3 no es < 3, frena pacíficamente.`, choices: [{ text: 'Examen Final', next: 'c4_10' }] },
+      'c4_10': { img: 'sword', type: 'quiz', retryNode: 'c4_9', question: 'Prepara {CLASS_WEAPON}. ¿Cuántos ataques lanzará?', opts: [
+        { t: '4 ataques.', ok: true, fb: '¡VICTORIA! 0, 1, 2, y 3. Son 4 vueltas reales.' },
+        { t: '5 ataques.', ok: false, fb: 'Cuenta: 0, 1, 2, 3. Al intentar el 4, rebota.' }
+      ], codeTitle: 'Último Examen', code: `for (let i = 0; i < 4; i++) {\n  atacar();\n}`, codeExp: 'Tu mente ha trascendido.', nextChapter: null }
+    }
+  }
+};
+
+let S = { name: '', gender: 'X', title: '', welcome: '', classId: '', ch: 0, currentNode: '', mana: 100, level: 1, avatarUrl: null };
+const $=id=>document.getElementById(id);
+
+async function saveGame() {
+  localStorage.setItem('codexSave', JSON.stringify(S)); 
+  if (currentUserUid) {
+    try {
+        await updateDoc(doc(db, "alumnos", currentUserUid), {
+          nivel: S.level,
+          clase: S.classId,
+          progresoJuego: JSON.stringify(S) 
+        });
+    } catch(e) { console.log(e); }
+  }
+}
+
+function loadGame() {
+  const saved = localStorage.getItem('codexSave');
+  if (saved) {
+    S = JSON.parse(saved);
+    return true;
+  }
+  return false;
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUserUid = user.uid;
+    let tempName = localStorage.getItem('temp_reg_name');
+    if(tempName && $('player-name')) {
+        $('player-name').value = tempName;
+        localStorage.removeItem('temp_reg_name');
+    }
+  } else {
+    window.location.href = "index.html"; 
+  }
+});
+
+function hl(code) {
+  if (!code) return '';
+  code = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return code.replace(/(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|\b(let|const|var|function|return|if|else|for|while|true|false|null|undefined)\b|\b(\d+)\b|([a-zA-Z_]\w*)(?=\s*\()/g,
+    function(match, pComment, pStr1, pStr2, pKey, pNum, pFunc) {
+      if (pComment) return '<span class="c-comment">' + pComment + '</span>';
+      if (pStr1) return '<span class="c-string">' + pStr1 + '</span>';
+      if (pStr2) return '<span class="c-string">' + pStr2 + '</span>';
+      if (pKey) return '<span class="c-keyword">' + pKey + '</span>';
+      if (pNum) return '<span class="c-number">' + pNum + '</span>';
+      if (pFunc) return '<span class="c-function">' + pFunc + '</span>';
+      return match;
+    }
+  );
+}
+
+function updateMana(amount) {
+  S.mana += amount;
+  const badge = $('mana-badge');
+  badge.textContent = `⚡ Magia: ${S.mana}`;
+  if(amount < 0) {
+    badge.style.color = 'var(--red-c)';
+    setTimeout(() => badge.style.color = 'var(--blue-c)', 1000);
+  }
+  saveGame();
+}
+
+function updateLevel() {
+  $('level-badge').textContent = `Nivel ${S.level}/50`;
+}
+
+function renderClassSelectionGrid() {
+  const container = $('class-grid-container');
+  container.innerHTML = '';
+  CLASSES_DATA.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'class-card';
+    card.id = `card-${c.id}`;
+    let cName = c.name[S.gender] || c.name['X'];
+    card.innerHTML = `
+      <h3><span>${cName}</span> <span class="class-icon">${c.icon}</span></h3>
+      <div class="class-desc">${c.desc}</div>
+      <div class="class-stats"><span>Arma: ${c.weapon}</span></div>
+    `;
+    card.onclick = () => { playSfx('click'); selectClassPill(c.id); };
+    container.appendChild(card);
+  });
+}
+
+function selectClassPill(id) {
+  S.classId = id;
+  document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+  $(`card-${id}`).classList.add('selected');
+}
+
+function updateProgress() {
+  const chData = STAGE_TREE[S.ch];
+  $('chapter-badge').innerHTML = `<span style="color:${chData.color}">${chData.icon} ${chData.title}</span>`;
+  document.querySelectorAll('.cpip').forEach(p => {
+    const i = parseInt(p.dataset.ch);
+    p.classList.remove('active', 'done');
+    if (i < S.ch) p.classList.add('done');
+    if (i === S.ch) p.classList.add('active');
+  });
+  $('code-dot').style.background = chData.color;
+  updateLevel();
+}
+
+function typeConsole(text) {
+  const cPanel = $('console-panel');
+  const cText = $('console-text');
+  if(!text) { cPanel.style.display = 'none'; return; }
+  
+  cPanel.style.display = 'block';
+  cText.innerHTML = '';
+  cText.classList.remove('typewriter');
+  
+  void cText.offsetWidth; 
+  cText.classList.add('typewriter');
+  cText.innerHTML = text;
+}
+
+function loadActiveNode() {
+  saveGame(); 
+  updateProgress();
+  const chData = STAGE_TREE[S.ch];
+  const node = chData.nodes[S.currentNode];
+  const clObj = CLASSES_DATA.find(x => x.id === S.classId);
+  const className = clObj.name[S.gender] || clObj.name['X'];
+
+  const codeContent = $('code-content');
+  codeContent.style.animation = 'none';
+  codeContent.offsetHeight; 
+  codeContent.style.animation = null;
+
+  let repCodeText = (node.code || '')
+    .replace(/{NAME}/g, S.name)
+    .replace(/{TITLE}/g, S.title)
+    .replace(/{CLASS_NAME}/g, className);
+    
+  $('code-title').textContent = node.codeTitle || '';
+  codeContent.innerHTML = hl(repCodeText);
+  $('code-explanation').innerHTML = (node.codeExp || '').replace(/<code>(.*?)<\/code>/g, '<code>$1</code>');
+
+  typeConsole(node.consoleText);
+
+  const svgContainer = $('story-illustration-container');
+  svgContainer.innerHTML = '';
+  if(node.img && SVG_LIBRARY[node.img]) {
+    svgContainer.innerHTML = SVG_LIBRARY[node.img];
+    svgContainer.style.display = 'flex';
+    svgContainer.style.animation = 'none';
+    svgContainer.offsetHeight;
+    svgContainer.style.animation = null;
+  } else {
+    svgContainer.style.display = 'none';
+  }
+
+  const cContainer = $('choices-container');
+  cContainer.innerHTML = '';
+
+  if (node.type === 'quiz') {
+    let qText = node.question.replace(/{CLASS_WEAPON}/g, clObj.weapon);
+    $('narrative-text').innerHTML = `<div><div class="quiz-badge">🛡️ Desafío del Abismo</div><p class="quiz-question" style="font-size:1.25rem; font-weight:600;">${qText}</p></div>`;
+    
+    let shuffledOpts = [...node.opts].sort(() => Math.random() - 0.5);
+    
+    shuffledOpts.forEach(o => {
+      const b = document.createElement('button');
+      b.className = 'choice-btn';
+      b.textContent = o.t;
+      b.onclick = () => { playSfx('click'); evaluateQuizAnswer(o, b, cContainer, node); };
+      cContainer.appendChild(b);
+    });
+    return;
+  }
+
+  let processedText = node.text
+    .replace(/{NAME}/g, S.name)
+    .replace(/{TITLE}/g, S.title)
+    .replace(/{WELCOME}/g, S.welcome)
+    .replace(/{CLASS_NAME}/g, className)
+    .replace(/{CLASS_FLAVOR}/g, clObj.flavor)
+    .replace(/{CLASS_WEAPON}/g, clObj.weapon);
+    
+  let paragraphs = processedText.split('\n\n').map(p => p.trim()).filter(p => p.length > 0);
+  $('narrative-text').innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+  node.choices.forEach(ch => {
+    const b = document.createElement('button');
+    b.className = 'choice-btn';
+    b.textContent = ch.text;
+    b.onclick = () => { playSfx('click'); S.level++; S.currentNode = ch.next; loadActiveNode(); };
+    cContainer.appendChild(b);
+  });
+}
+
+function evaluateQuizAnswer(opt, selectedBtn, container, nodeData) {
+  container.querySelectorAll('button').forEach(b => b.disabled = true);
+  const feedback = document.createElement('div');
+  const nextBtn = document.createElement('button');
+
+  if (opt.ok) {
+    playSfx('correct');
+    selectedBtn.classList.add('correct');
+    updateMana(10);
+    feedback.className = 'quiz-feedback correct';
+    feedback.textContent = '✨ ¡Sobreviviste! ' + opt.fb;
+    container.appendChild(feedback);
+
+    nextBtn.className = 'choice-btn continue-btn';
+    nextBtn.textContent = 'Avanzar al siguiente nivel →';
+    nextBtn.onclick = () => {
+      playSfx('click');
+      S.level++;
+      if (nodeData.nextNode) { S.currentNode = nodeData.nextNode; loadActiveNode(); }
+      else if (nodeData.nextChapter !== null) { renderChapterTransition(); }
+      else { renderGrandVictoryScreen(); }
+    };
+  } else {
+    playSfx('wrong');
+    const gameMain = $('game-main');
+    gameMain.classList.remove('shake');
+    void gameMain.offsetWidth;
+    gameMain.classList.add('shake');
+
+    selectedBtn.classList.add('incorrect');
+    updateMana(-15);
+    container.querySelectorAll('button').forEach(b => {
+      const match = nodeData.opts.find(x => x.t === b.textContent);
+      if (match?.ok) b.classList.add('correct');
+    });
+
+    feedback.className = 'quiz-feedback incorrect';
+    feedback.textContent = '❌ Has muerto. Analiza tu error: ' + opt.fb;
+    container.appendChild(feedback);
+
+    nextBtn.className = 'choice-btn continue-btn';
+    nextBtn.style.color = 'var(--red-c)';
+    nextBtn.textContent = '↺ Revivir en la hoguera (Releer)';
+    nextBtn.onclick = () => { playSfx('click'); S.currentNode = nodeData.retryNode; loadActiveNode(); };
+  }
+  container.appendChild(nextBtn);
+}
+
+function renderChapterTransition() {
+  const runeEl = $(`rune-${S.ch}`);
+  if(runeEl) runeEl.classList.add('unlocked');
+
+  const currentCh = STAGE_TREE[S.ch];
+  $('narrative-text').innerHTML = `
+    <div style="text-align:center;padding:1rem 0;">
+      <div style="font-size:3rem;margin-bottom:1rem;">${currentCh.icon}</div>
+      <h2 style="font-family:'Cinzel',serif;color:var(--gold-bright);margin-bottom:0.5rem;">Calabozo Completado</h2>
+      <p style="color:var(--cream-muted);margin-bottom:1.5rem">Has obtenido la Runa de ${currentCh.concept}.</p>
+    </div>`;
+  $('story-illustration-container').style.display = 'none';
+  $('console-panel').style.display = 'none';
+  const container = $('choices-container');
+  container.innerHTML = '';
+  const nextChIndex = S.ch + 1;
+  const nextCh = STAGE_TREE[nextChIndex];
+
+  const btn = document.createElement('button');
+  btn.className = 'choice-btn continue-btn';
+  btn.textContent = `${nextCh.icon} Encender hoguera: ${nextCh.title}`;
+  btn.onclick = () => { playSfx('click'); S.ch = nextChIndex; S.currentNode = nextCh.startNode; loadActiveNode(); };
+  container.appendChild(btn);
+}
+
+function renderGrandVictoryScreen() {
+  const runeEl = $(`rune-${S.ch}`);
+  if(runeEl) runeEl.classList.add('unlocked');
+
+  const clObj = CLASSES_DATA.find(x => x.id === S.classId);
+  const className = clObj.name[S.gender] || clObj.name['X'];
+  
+  $('narrative-text').innerHTML = `
+    <div style="text-align:center;">
+      <h1 style="font-family:'Cinzel',serif;color:var(--gold-bright);margin-bottom:1.5rem; font-size:2.5rem;">ALMA RECUPERADA</h1>
+      <p>Increíble, <b>${S.name}</b>. Entraste desnudo a este abismo, y usando el poder de tu <b>${className}</b> superaste los 50 niveles formativos de la ingeniería web.</p>
+      <p style="color:var(--cream-muted); font-size: 0.95rem; margin-top:2rem;">Acabas de dominar: Lógica Computacional, Variables (let/const), Tipos Primitivos, Lógica de Ramificación (If/Else) e Iteración Estricta (Bucles FOR).</p>
+      <p style="color:var(--gold-pale); margin-top:1rem; font-style:italic;">Enlázate a la red. El mundo real te espera.</p>
+    </div>`;
+  $('story-illustration-container').innerHTML = SVG_LIBRARY['shield'];
+  $('story-illustration-container').style.display = 'flex';
+  $('console-panel').style.display = 'none';
+  
+  $('code-title').textContent = 'victoria.js';
+  $('code-content').innerHTML = hl(`// El nacimiento de un Dev:\nconst dev = "${S.name}";\nconst clase = "${className}";\n\nif (niveles === 50) {\n  console.log("Sistema conquistado.");\n}`);
+  $('code-explanation').innerHTML = 'Has demostrado una resiliencia impecable.';
+  
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'choice-btn continue-btn';
+  resetBtn.textContent = 'Avanzar al Examen Final ✦';
+  resetBtn.onclick = () => { window.location.href = 'examen.html'; }; // ENLACE AL EXAMEN
+  $('choices-container').innerHTML = '';
+  $('choices-container').appendChild(resetBtn);
+}
+
+
+const bgAudio = document.getElementById('bg-audio');
+const musicToggle = $('music-toggle-btn');
+
+if (loadGame()) {
+  $('welcome').style.display = 'none';
+  $('resume-screen').style.display = 'flex';
+}
+
+$('resume-btn').addEventListener('click', () => {
+  initAudio();
+  playSfx('click');
+  $('resume-screen').style.display = 'none';
+  $('game').style.display = 'flex';
+  
+  if (S.avatarUrl) {
+    $('nav-avatar-img').src = S.avatarUrl;
+    $('nav-avatar-container').className = `nav-avatar-container frame-${S.classId}`;
+    $('nav-avatar-container').style.display = 'block';
+  }
+  
+  bgAudio.play().then(() => { 
+      isPlaying = true; 
+      musicToggle.textContent = '🔊'; 
+      musicToggle.classList.remove('muted');
+  }).catch(e => { console.log('Audio bloqueado por navegador.'); });
+  
+  for(let i=0; i<S.ch; i++) {
+      const r = $(`rune-${i}`);
+      if(r) r.classList.add('unlocked');
+  }
+  
+  loadActiveNode();
+});
+
+$('hard-reset-btn').addEventListener('click', () => {
+  localStorage.removeItem('codexSave');
+  location.reload();
+});
+
+musicToggle.addEventListener('click', () => {
+  playSfx('click');
+  if(isPlaying) { bgAudio.pause(); musicToggle.textContent = '🔇'; musicToggle.classList.add('muted'); isPlaying = false; }
+  else { bgAudio.play(); musicToggle.textContent = '🔊'; musicToggle.classList.remove('muted'); isPlaying = true; }
+});
+
+const modal = $('grimorio-modal');
+$('grimorio-btn').addEventListener('click', () => {
+  playSfx('click');
+  const clObj = CLASSES_DATA.find(x => x.id === S.classId);
+  $('modal-name').textContent = S.name;
+  $('modal-class').textContent = clObj.name[S.gender] || clObj.name['X'];
+  if(S.avatarUrl) {
+     $('modal-avatar').src = S.avatarUrl;
+     $('modal-avatar-container').className = `nav-avatar-container frame-${S.classId}`;
+  }
+  modal.style.display = 'flex';
+});
+$('close-grimorio').addEventListener('click', () => { playSfx('click'); modal.style.display = 'none'; });
+window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
+
+$('reset-game-btn').addEventListener('click', () => {
+  if(confirm("¿Seguro que deseas purgar la memoria? Perderás todo tu progreso actual y regresarás a ser un simple mortal.")) {
+      localStorage.removeItem('codexSave');
+      location.reload();
+  }
+});
+
+$('avatar-file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const img = new Image();
+      img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = 150; canvas.height = 150;
+          
+          const size = Math.min(img.width, img.height);
+          const x = (img.width - size) / 2;
+          const y = (img.height - size) / 2;
+          
+          ctx.drawImage(img, x, y, size, size, 0, 0, 150, 150);
+          S.avatarUrl = canvas.toDataURL('image/jpeg', 0.8);
+          $('avatar-preview-home').src = S.avatarUrl;
+      }
+      img.src = evt.target.result;
+    }
+    reader.readAsDataURL(file);
+  }
+});
+
+$('to-classes-btn').addEventListener('click', () => {
+  const name = $('player-name').value.trim();
+  if (!name) { $('player-name').focus(); return; }
+  
+  initAudio();
+  playSfx('click');
+
+  S.name = name;
+  S.gender = $('player-gender').value;
+  S.title = S.gender === 'M' ? 'Maestro' : (S.gender === 'F' ? 'Maestra' : 'Aprendiz');
+  S.welcome = S.gender === 'M' ? 'Bienvenido' : (S.gender === 'F' ? 'Bienvenida' : 'Te damos la bienvenida');
+  
+  renderClassSelectionGrid();
+  $('welcome').style.display = 'none';
+  $('class-selection').style.display = 'flex';
+  selectClassPill('caballero'); 
+});
+
+$('start-game-btn').addEventListener('click', () => {
+  playSfx('click');
+  const clObj = CLASSES_DATA.find(x => x.id === S.classId);
+  S.mana = 100 + clObj.manaBonus;
+  updateMana(0);
+  
+  if (S.avatarUrl) {
+    $('nav-avatar-img').src = S.avatarUrl;
+    $('nav-avatar-container').className = `nav-avatar-container frame-${S.classId}`; 
+    $('nav-avatar-container').style.display = 'block';
+  }
+
+  bgAudio.play().then(() => { 
+      isPlaying = true; 
+      musicToggle.textContent = '🔊'; 
+      musicToggle.classList.remove('muted');
+  }).catch(e => { console.log('Audio bloqueado.'); });
+
+  S.ch = 0; S.currentNode = STAGE_TREE[0].startNode;
+  $('class-selection').style.display = 'none';
+  $('game').style.display = 'flex';
+  loadActiveNode();
+});
+
+</script>
+</body>
+</html>

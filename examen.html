@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Codex Arcanum: La Prueba Final</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+        
+        :root {
+            --bg-deep: #050407;
+            --bg-main: #0d0b10;
+            --bg-panel: #14121a;
+            --bg-code: #0b0910;
+            --border-dim: rgba(160,120,220,0.15);
+            --iron-grey: #2a2633;
+            --gold: #c8922a;
+            --gold-bright: #e8b84b;
+            --gold-pale: #f5d890;
+            --cream: #ede4d0;
+            --purple: #9b6dff;
+            --purple-c: #c39aff;
+            --green-c: #6dde9a;
+            --red-c: #ff8585;
+            --grey-c: #7a8a7a;
+            --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: var(--bg-deep);
+            background-image: radial-gradient(circle at 50% 10%, rgba(50,40,80,0.2) 0%, transparent 70%), repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
+            color: var(--cream);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 1.15rem;
+            line-height: 1.8;
+        }
+
+        #game-main { display: flex; width: 100%; height: 100%; }
+
+        #story-panel {
+            width: 50%;
+            background: radial-gradient(ellipse at center, rgba(20,18,28,1) 0%, rgba(13,11,16,1) 100%);
+            padding: 3rem 4rem;
+            display: flex; flex-direction: column; justify-content: center;
+            border-right: 2px solid var(--iron-grey);
+            position: relative;
+        }
+        
+        #story-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: var(--noise); opacity: 0.02; pointer-events: none;
+        }
+
+        .progress-wrapper { margin-bottom: 2rem; width: 100%; position: relative; z-index: 2; }
+        #lesson-counter { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold-pale); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+        #progress-bar { height: 4px; background: #111; border-radius: 2px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.8); }
+        #progress-fill { height: 100%; background: var(--purple); box-shadow: 0 0 10px var(--purple); width: 0%; transition: width 0.4s ease; }
+
+        #lesson-title { font-family: 'Cinzel', serif; font-size: 2.5rem; font-weight: 700; color: var(--gold-bright); margin-bottom: 1rem; text-shadow: 0 2px 8px rgba(232,184,75,0.2); animation: fadeIn 0.4s ease both; position: relative; z-index: 2; }
+        #lesson-desc { color: var(--cream); margin-bottom: 2.5rem; animation: fadeIn 0.4s ease both 0.1s; position: relative; z-index: 2; font-size: 1.25rem; }
+
+        .controls { display: flex; flex-direction: column; gap: 15px; animation: fadeIn 0.4s ease both 0.2s; position: relative; z-index: 2; }
+        input { width: 100%; padding: 1rem 1.25rem; background: rgba(0,0,0,0.6); border: 1px solid var(--purple-c); border-radius: 4px; color: var(--green-c); font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; outline: none; transition: all 0.2s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        input:focus { border-color: var(--purple); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 0 15px rgba(155, 109, 255, 0.25); }
+
+        button { padding: 1rem 2rem; background: linear-gradient(180deg, #573393 0%, #351d66 100%); border: 1px solid var(--gold); border-radius: 4px; color: var(--gold-pale); font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        button:hover:not(:disabled) { background: linear-gradient(180deg, #6c42b3 0%, #442780 100%); transform: translateY(-1px); box-shadow: 0 0 15px rgba(155,109,255,0.4); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(80%); }
+
+        #feedback { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; text-align: center; min-height: 45px; margin-top: 15px; position: relative; z-index: 2; line-height: 1.5; }
+
+        #ide-panel { width: 50%; background: var(--bg-code); display: flex; flex-direction: column; }
+        .code-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--iron-grey); display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.4); }
+        .code-header-icon { width: 10px; height: 10px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 8px var(--purple); }
+        #code-title { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--purple-c); letter-spacing: 0.05em; text-transform: uppercase; }
+        .code-wrap { padding: 3rem 4rem; flex-grow: 1; background-color: var(--bg-code); box-shadow: inset 0 0 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
+        #code-display { font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; line-height: 1.9; color: var(--cream); white-space: pre-wrap; animation: fadeIn 0.4s ease both; }
+
+        .c-comment { color: var(--grey-c); font-style: italic; }
+        .c-keyword { color: var(--purple-c); }
+        .c-string { color: var(--green-c); }
+        .c-number { color: var(--orange-c); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+
+        .score-panel { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; animation: fadeIn 0.8s ease both; position: relative; z-index: 2;}
+        .score-rune { font-size: 2rem; color: var(--gold); margin-bottom: 1rem; text-shadow: 0 0 15px var(--gold); }
+        .score-title { font-family: 'Cinzel', serif; color: var(--gold-bright); font-size: 5rem; line-height: 1; margin: 0 0 10px 0; text-shadow: 0 0 20px rgba(232,184,75,0.3); }
+        .score-subtitle { font-family: 'Cinzel', serif; color: var(--cream-muted); font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <div id="game-main">
+        <div id="story-panel">
+            <div id="lesson-content">
+                <div class="progress-wrapper">
+                    <div id="lesson-counter"><span>Evaluación Final</span> <span id="counter-num">1 / 20</span></div>
+                    <div id="progress-bar"><div id="progress-fill"></div></div>
+                </div>
+
+                <h2 id="lesson-title">Cargando...</h2>
+                <p id="lesson-desc">Iniciando...</p>
+                
+                <div class="controls">
+                    <input type="text" id="user-input" placeholder="Respuesta..." autocomplete="off" spellcheck="false">
+                    <button id="btn-submit" onclick="checkAnswer()">Confirmar Runa</button>
+                </div>
+                <p id="feedback"></p>
+            </div>
+        </div>
+
+        <div id="ide-panel">
+            <div class="code-header">
+                <div class="code-header-icon"></div>
+                <div id="code-title">Contexto del Sistema</div>
+            </div>
+            <div class="code-wrap">
+                <pre id="code-display">// Esperando sincronización...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. INICIALIZAR FIREBASE
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAYV1EGOP4vOlQwNnNBh2SdETAOsbDdWJQ",
+          authDomain: "codexarcanum-3c89e.firebaseapp.com",
+          projectId: "codexarcanum-3c89e",
+          storageBucket: "codexarcanum-3c89e.firebasestorage.app",
+          messagingSenderId: "154003457548",
+          appId: "1:154003457548:web:05698959fef96972529029"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUserUid = null;
+
+        onAuthStateChanged(auth, (user) => {
+          if (user) { currentUserUid = user.uid; } 
+          else { window.location.href = "index.html"; } // Si no ha iniciado, se regresa a la puerta
+        });
+
+
+        const CURRICULUM = [
+            // Capítulo 1 y 2: Variables y Reglas
+            { t: "Memoria Dinámica", desc: "Para guardar la salud de un jugador (la cual bajará al recibir daño), ¿qué palabra clave exacta usas antes del nombre de la variable?", c: "// Necesitamos almacenar los puntos de salud.\n// ¿Con qué hechizo se crea esta caja?", expect: "let" },
+            { t: "Protección Absoluta", desc: "Quieres proteger el ID del jugador para que ningún hacker lo cambie. Escribe el código completo para crear la constante 'id' con el valor 1.", c: "// El identificador no debe cambiar jamás.\n// Crea la variable 'id' = 1;", expect: "const id = 1;" },
+            { t: "Mutación de Memoria", desc: "La variable 'oro' ya existe. Has encontrado un tesoro. Escribe la instrucción para actualizar su valor a 50 (sin volver a declararla).", c: "let oro = 10;\n// Encuentras monedas.\n// Actualiza 'oro' a 50 aquí abajo:", expect: "oro = 50;" },
+            { t: "La Ley del Camello", desc: "Según la regla que aprendiste (camelCase), ¿cómo escribirías el nombre de una variable para 'nivel del jefe'?", c: "// Las variables no toleran espacios.\n// Aplica la técnica camelCase.", expect: "nivelDelJefe" },
+            
+            // Capítulo 3: Tipos de Datos y Consola
+            { t: "Textos Mágicos", desc: "Vas a guardar el nombre de tu enemigo. Escribe el código completo para crear la variable 'enemigo' con el texto 'Orco' (usa let y comillas dobles).", c: "// Crea la variable enemigo.\n// Ojo con el tipo de dato para textos.", expect: 'let enemigo = "Orco";' },
+            { t: "Aritmética Pura", desc: "Tienes las variables 'fuerza' y 'arma'. Crea una nueva variable (let) llamada 'total' que guarde la suma matemática de ambas.", c: "let fuerza = 15;\nlet arma = 5;\n// Suma ambas en la variable 'total':", expect: "let total = fuerza + arma;" },
+            { t: "Trampa de Coerción", desc: "Si sumas dos textos, la máquina los pega en lugar de sumarlos matemáticamente. ¿Cuál será el resultado exacto (en texto) de sumar a + b?", c: "let a = \"10\";\nlet b = \"5\";\n// ¿Qué produce a + b?", expect: '"105"' },
+            { t: "Interruptores Lógicos", desc: "¿Qué tipo de dato usarías para indicar si una puerta está abierta o cerrada? Crea la variable 'abierta' y asígnale el valor falso.", c: "// Usa el tipo de dato de vida/muerte.\n// (Recuerda: no lleva comillas).", expect: "let abierta = false;" },
+            { t: "El Silencio", desc: "El sistema ejecutará todas las líneas y fallará. ¿Qué dos símbolos pones al inicio de una línea para convertirla en un comentario y que la máquina la ignore?", c: "daño = 100;\n// La línea de arriba tiene un bug fatal.\n// ¿Con qué símbolos la silencias?", expect: "//" },
+            { t: "El Oráculo", desc: "Quieres ver cuánta magia te queda en el monitor. Escribe el comando exacto de impresión en consola para mostrar la variable 'magia'.", c: "let magia = 80;\n// Imprime este valor en la pantalla:", expect: "console.log(magia);" },
+            
+            // Capítulo 4: Condicionales (Bifurcaciones)
+            { t: "La Bifurcación", desc: "Vas a crear una toma de decisión. Escribe la estructura inicial (If) comprobando si la variable 'nivel' es mayor a 10. (Sin llaves ni punto y coma).", c: "let nivel = 12;\n// Inicia la evaluación condicional:", expect: "if (nivel > 10)" },
+            { t: "Identidad Estricta", desc: "Un solo signo igual (=) sirve para guardar datos. ¿Cuál es el operador exacto que usas dentro de un If para comparar si dos cosas son absolutamente idénticas?", c: "// No uses '=' para comparar.\n// ¿Qué símbolo comprueba identidad estricta?", expect: "===" },
+            { t: "Caminos Alternos", desc: "Si el 'if' principal falló, quieres evaluar otra opción. Escribe la estructura para evaluar si 'nivel' es idéntico a 5.", c: "if (nivel > 10) {\n  //...\n}\n// Evalúa el plan alternativo aquí:", expect: "else if (nivel === 5)" },
+            { t: "El Plan de Respaldo", desc: "Si todos los caminos fallaron, necesitas una red de seguridad. Escribe la palabra clave que atrapa todo lo demás, seguida de la llave de apertura '{'.", c: "// Todos los caminos anteriores fallaron.\n// Abre el plan de emergencia:", expect: "else {" },
+            
+            // Capítulo 5: Ciclos For y el Cero
+            { t: "El Cero Sagrado", desc: "Las máquinas tienen su propia forma de contar elementos en una lista. ¿Cuál es el número que representa la primera posición?", c: "let lista = [\"A\", \"B\", \"C\"];\n// ¿Qué número (índice) representa a \"A\"?", expect: "0" },
+            { t: "Motor de Repetición: Inicio", desc: "Vas a crear un Bucle For. Escribe la primera de las 3 partes: declara la variable iteradora 'i' comenzando en el número base de las máquinas.", c: "// Construyendo un bucle for.\n// Parte 1 (Inicio):", expect: "let i = 0;" },
+            { t: "Motor de Repetición: Límite", desc: "Segunda parte del Bucle: escribe la condición matemática para que la rueda gire únicamente mientras 'i' sea menor a 3.", c: "// Parte 2 (Condición de freno):\n// Evita el infinito.", expect: "i < 3;" },
+            { t: "Motor de Repetición: Avance", desc: "Tercera parte del Bucle: escribe el atajo ninja para sumarle 1 a la variable 'i' al final de cada vuelta (sin punto y coma).", c: "// Parte 3 (Incremento):\n// Aumenta el valor de 'i' en 1.", expect: "i++" },
+            { t: "El Gran Ensamblaje", desc: "Une las 3 partes. Escribe la declaración completa de un bucle 'for' que gire exactamente 4 veces. (Inicia en 0, menor a 4, suma de 1 en 1).", c: "// Une Inicio, Límite y Avance.\n// (No incluyas las llaves {}).", expect: "for (let i = 0; i < 4; i++)" },
+            { t: "El Cataclismo", desc: "Si construyes un ciclo 'for' pero olvidas ponerle la condición de Límite, ¿Qué desastre provocas en la computadora?", c: "for (let i = 0; ; i++) {\n  atacar();\n}\n// ¿Qué ocurrirá al ejecutar esto?", expect: "Bucle Infinito" }
+        ];
+
+        let currentLesson = 0;
+        let aciertos = 0; 
+
+        function formatContext(code) {
+            return code.split('\n').map(line => {
+                if (line.trim().startsWith('//')) {
+                    return `<span class="c-comment">${line}</span>`;
+                }
+                let formatted = line
+                    .replace(/\b(let|const|function|if|else|for)\b/g, '<span class="c-keyword">$1</span>')
+                    .replace(/("[^"]*")/g, '<span class="c-string">$1</span>')
+                    .replace(/\b(true|false)\b/g, '<span class="c-number">$1</span>')
+                    .replace(/\b([0-9]+)\b/g, '<span class="c-number">$1</span>');
+                return formatted;
+            }).join('\n');
+        }
+
+        function render() {
+            const lesson = CURRICULUM[currentLesson];
+            
+            document.getElementById('btn-submit').disabled = false;
+            document.getElementById('user-input').disabled = false;
+            
+            const titleEl = document.getElementById('lesson-title');
+            const descEl = document.getElementById('lesson-desc');
+            const codeEl = document.getElementById('code-display');
+            
+            titleEl.style.animation = 'none'; descEl.style.animation = 'none'; codeEl.style.animation = 'none';
+            void titleEl.offsetWidth; 
+            titleEl.style.animation = null; descEl.style.animation = null; codeEl.style.animation = null;
+
+            titleEl.innerText = lesson.t;
+            descEl.innerText = lesson.desc;
+            codeEl.innerHTML = formatContext(lesson.c);
+            
+            document.getElementById('counter-num').innerText = `${currentLesson + 1} / ${CURRICULUM.length}`;
+            let progress = ((currentLesson) / CURRICULUM.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + "%";
+            
+            document.getElementById('user-input').value = "";
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('story-panel').classList.remove('shake');
+            
+            document.getElementById('user-input').focus();
+            
+            document.getElementById('user-input').onkeydown = function(e){
+                if(e.key === "Enter") window.checkAnswer(); // Ajuste: agregado "window."
+            };
+        }
+
+        window.checkAnswer = function() {
+            const inputRaw = document.getElementById('user-input').value;
+            const expectedRaw = CURRICULUM[currentLesson].expect;
+            
+            let normInput = inputRaw.replace(/\s+/g, '').toLowerCase().replace(/'/g, '"');
+            let normExpected = expectedRaw.replace(/\s+/g, '').toLowerCase().replace(/'/g, '"');
+
+            const feedback = document.getElementById('feedback');
+            const panel = document.getElementById('story-panel');
+            const btn = document.getElementById('btn-submit');
+
+            btn.disabled = true;
+            document.getElementById('user-input').disabled = true;
+
+            if (normInput === normExpected) {
+                aciertos++;
+                feedback.style.color = "var(--green-c)";
+                feedback.innerHTML = "✨ ¡Respuesta Correcta!";
+            } else {
+                feedback.style.color = "var(--red-c)";
+                feedback.innerHTML = `❌ Incorrecto. La respuesta exacta era:<br><span style="color:var(--cream); letter-spacing: 1px; font-weight: bold;">${expectedRaw}</span>`;
+                
+                panel.classList.remove('shake');
+                void panel.offsetWidth; 
+                panel.classList.add('shake');
+            }
+
+            currentLesson++;
+
+            if (currentLesson < CURRICULUM.length) {
+                setTimeout(render, 3000); 
+            } else {
+                document.getElementById('progress-fill').style.width = "100%";
+                setTimeout(window.mostrarResultados, 3000); // Ajuste: agregado "window."
+            }
+        }
+
+        // Ajuste: agregado "window." y guardado en Firebase al final
+        window.mostrarResultados = async function() {
+            let promedioFinal = (aciertos / CURRICULUM.length) * 100;
+            promedioFinal = Math.round(promedioFinal); 
+            
+            let mensaje = "";
+            let colorScore = "";
+            if (promedioFinal === 100) { mensaje = "Dominio Absoluto. Eres un verdadero Arquitecto de Software."; colorScore = "var(--gold-bright)"; }
+            else if (promedioFinal >= 80) { mensaje = "Gran Desempeño. Tu lógica es envidiable."; colorScore = "var(--green-c)"; }
+            else if (promedioFinal >= 60) { mensaje = "Aprobado. Sobreviviste a la prueba, pero debes repasar tus notas."; colorScore = "var(--gold-pale)"; }
+            else { mensaje = "Voluntad Quebrantada. Tu código ha colapsado. Necesitas estudiar de nuevo el grimorio."; colorScore = "var(--red-c)"; }
+
+            document.getElementById('lesson-content').innerHTML = `
+                <div class="score-panel">
+                    <div class="score-rune">⟢ ✦ ⟣</div>
+                    <h1 class="score-title" style="color:${colorScore}">${promedioFinal}%</h1>
+                    <p class="score-subtitle">${aciertos} de ${CURRICULUM.length} aciertos</p>
+                    <p style="font-size:1.2rem; color:var(--cream); margin-bottom:30px; max-width:80%; line-height:1.5;">${mensaje}</p>
+                    <button onclick="location.reload()">↻ Repetir Examen</button>
+                </div>
+            `;
+            
+            document.getElementById('ide-panel').innerHTML = `
+                <div class="code-header">
+                    <div class="code-header-icon" style="background:var(--red-c); box-shadow: 0 0 8px var(--red-c);"></div>
+                    <div id="code-title" style="color:var(--grey-c);">Conexión Finalizada</div>
+                </div>
+                <div class="code-wrap">
+                    <pre style="color:var(--grey-c); font-family:'JetBrains Mono',monospace;">> Ejecución terminada.<br>> Rendimiento analizado.<br>> Registrando evaluación en la academia...</pre>
+                </div>
+            `;
+
+            // ¡AQUÍ ESTÁ EL GUARDADO EN FIREBASE!
+            if (currentUserUid) {
+                try {
+                    await updateDoc(doc(db, "alumnos", currentUserUid), {
+                        calificacionExamen: promedioFinal + "%"
+                    });
+                } catch (error) {
+                    console.error("Error guardando calificación: ", error);
+                }
+            }
+        }
+
+        // Iniciar el examen
+        render();
+    </script>
+</body>
+</html>

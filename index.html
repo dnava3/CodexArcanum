@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex Arcanum — Las Puertas del Santuario</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* MISMOS ESTILOS QUE ANTES */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{ background: #050407; background-image: radial-gradient(circle at 50% 10%, rgba(50,40,80,0.2) 0%, transparent 70%), repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px); color:#ede4d0; font-family:'Crimson Text',Georgia,serif; font-size:1.15rem; min-height:100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;}
+.panel-inner{ max-width: 500px; width: 100%; background: radial-gradient(ellipse at center, rgba(20,16,30,0.98) 0%, rgba(13,11,16,1) 100%); border: 2px solid #2a2633; border-radius: 8px; padding:3.5rem 3rem; box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 25px rgba(155,109,255,0.08); position:relative; text-align: center; animation: fadeIn 0.8s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.section-title{ font-family:'Cinzel',serif; font-size:2.2rem; font-weight:700; color:#e8b84b; margin-bottom:0.5rem; text-shadow: 0 2px 8px rgba(232,184,75,0.2); }
+.section-subtitle{ color: #8a7d6a; font-size: 1.1rem; margin-bottom: 2.5rem; font-style: italic; }
+.form-group { text-align: left; margin-bottom: 1.5rem; display: flex; flex-direction: column; }
+.form-group label { font-size: 0.85rem; color: #f5d890; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; font-family: 'Cinzel', serif; }
+.input-styled { padding: 1rem; background: rgba(0,0,0,0.6); border: 1px solid rgba(140,90,220,0.3); border-radius: 4px; color: #ede4d0; font-family: 'JetBrains Mono', monospace; font-size: 1rem; outline: none; transition: all 0.2s; }
+.input-styled:focus { border-color: #9b6dff; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 0 15px rgba(155, 109, 255, 0.25); }
+.btn-prime{ width: 100%; padding: 1rem; margin-top: 1rem; background: linear-gradient(180deg, #573393 0%, #351d66 100%); border:1px solid #c8922a; border-radius:4px; color:#f5d890; font-family:'Cinzel',serif; font-size:1.1rem; font-weight:600; text-transform:uppercase; cursor:pointer; }
+.btn-prime:hover{ background: linear-gradient(180deg, #6c42b3 0%, #442780 100%); }
+.toggle-link { margin-top: 1.5rem; font-size: 0.95rem; color: #8a7d6a; cursor: pointer; background: none; border: none; font-family: 'Crimson Text', serif; }
+.toggle-link:hover { color: #c39aff; text-decoration: underline; }
+.error-msg { color: #ff6b6b; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px; display: none; }
+#register-view { display: none; }
+</style>
+</head>
+<body>
+
+<div class="panel-inner" id="auth-panel">
+    <h1 class="section-title">Codex Arcanum</h1>
+    
+    <div id="login-view">
+        <p class="section-subtitle">Identifica tu Alma (Iniciar Sesión)</p>
+        <form id="login-form">
+            <div class="form-group"><label>Correo</label><input type="email" id="login-email" class="input-styled" required></div>
+            <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" class="input-styled" required></div>
+            <div id="login-error" class="error-msg"></div>
+            <button type="submit" class="btn-prime">✧ Abrir el Portal</button>
+        </form>
+        <button class="toggle-link" onclick="toggleAuthMode()">¿Un alma nueva? Forja tu pacto aquí</button>
+    </div>
+
+    <div id="register-view">
+        <p class="section-subtitle">Forja tu Pacto Estudiantil (Registro)</p>
+        <form id="register-form">
+            <div class="form-group"><label>Tu Nombre Real</label><input type="text" id="reg-name" class="input-styled" required></div>
+            <div class="form-group"><label>Correo Escolar</label><input type="email" id="reg-email" class="input-styled" required></div>
+            <div class="form-group"><label>Contraseña (Mín. 6 letras)</label><input type="password" id="reg-password" class="input-styled" required></div>
+            <div id="reg-error" class="error-msg"></div>
+            <button type="submit" class="btn-prime">✧ Sellar Pacto y Entrar</button>
+        </form>
+        <button class="toggle-link" onclick="toggleAuthMode()">¿Ya tienes cuenta? Inicia Sesión</button>
+    </div>
+    <a href="dashboard.html" style="position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); color:#8a7d6a; font-family:'Cinzel'; text-decoration:none;">✦ Portal de Maestros ✦</a>
+</div>
+
+<!-- LÓGICA DE FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAYV1EGOP4vOlQwNnNBh2SdETAOsbDdWJQ",
+    authDomain: "codexarcanum-3c89e.firebaseapp.com",
+    projectId: "codexarcanum-3c89e",
+    storageBucket: "codexarcanum-3c89e.firebasestorage.app",
+    messagingSenderId: "154003457548",
+    appId: "1:154003457548:web:05698959fef96972529029"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.toggleAuthMode = () => {
+    const login = document.getElementById('login-view');
+    const reg = document.getElementById('register-view');
+    login.style.display = login.style.display === 'none' ? 'block' : 'none';
+    reg.style.display = reg.style.display === 'block' ? 'none' : 'block';
+  }
+
+  // REGISTRO
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    const errDiv = document.getElementById('reg-error');
+    
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      // Guardar datos iniciales en la base de datos (Colección "alumnos")
+      await setDoc(doc(db, "alumnos", user.uid), {
+        nombre: name,
+        correo: email,
+        clase: "Ninguna",
+        nivel: 1,
+        calificacionExamen: "Pendiente"
+      });
+      // Guardar el nombre localmente solo para la pantalla de bienvenida del juego
+      localStorage.setItem('temp_reg_name', name);
+      window.location.href = "CodexArcanum.html";
+    } catch (error) {
+      errDiv.style.display = 'block';
+      errDiv.innerText = "Error: " + error.message;
+    }
+  });
+
+  // LOGIN
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const errDiv = document.getElementById('login-error');
+    
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = "CodexArcanum.html";
+    } catch (error) {
+      errDiv.style.display = 'block';
+      errDiv.innerText = "Credenciales incorrectas.";
+    }
+  });
+</script>
+</body>
+</html>

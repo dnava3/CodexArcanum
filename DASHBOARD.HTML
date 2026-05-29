@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Santuario | Panel Administrativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #050407; --panel-bg: #14121a; --sidebar-bg: #0a080d;
+    --gold: #c8922a; --gold-bright: #e8b84b; --purple: #9b6dff;
+    --text-main: #ede4d0; --text-muted: #8a7d6a; --border: #2a2633;
+    --green: #6dde9a; --red: #ff8585;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'JetBrains Mono', monospace; }
+  body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+  
+  /* PANTALLA DE LOGIN PROTEGIDA */
+  #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(20,16,30,1) 0%, rgba(5,4,7,1) 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+  .login-box { background: var(--panel-bg); border: 1px solid var(--border); padding: 3rem; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); width: 100%; max-width: 400px; text-align: center; }
+  .login-box h1 { font-family: 'Cinzel', serif; color: var(--gold-bright); margin-bottom: 0.5rem; font-size: 1.8rem; }
+  .login-box p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
+  .input-styled { width: 100%; padding: 1rem; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 4px; color: white; margin-bottom: 1rem; outline: none; transition: border 0.3s; }
+  .input-styled:focus { border-color: var(--purple); }
+  .btn-gold { width: 100%; padding: 1rem; background: linear-gradient(180deg, #c8922a 0%, #8c6000 100%); border: none; border-radius: 4px; color: #fff; font-family: 'Cinzel', serif; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: transform 0.2s; }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(200,146,42,0.3); }
+  #login-error { color: var(--red); font-size: 0.8rem; margin-bottom: 1rem; display: none; }
+
+  /* SIDEBAR */
+  #sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 2rem 0; }
+  .brand { font-family: 'Cinzel', serif; color: var(--gold-bright); font-size: 1.5rem; text-align: center; margin-bottom: 2rem; letter-spacing: 2px; }
+  .nav-item { padding: 1rem 2rem; color: var(--text-muted); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; border-left: 3px solid transparent; }
+  .nav-item:hover, .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(200,146,42,0.05); }
+  .logout-btn { margin-top: auto; padding: 1rem 2rem; color: var(--red); cursor: pointer; font-size: 0.9rem; transition: opacity 0.3s; }
+  .logout-btn:hover { opacity: 0.7; }
+
+  /* MAIN CONTENT */
+  #main-content { flex: 1; padding: 2.5rem 3.5rem; overflow-y: auto; display: none; }
+  .header-dash { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+  .header-dash h2 { font-family: 'Cinzel', serif; color: white; font-size: 2rem; }
+  .header-dash p { color: var(--text-muted); font-size: 0.9rem; }
+  
+  /* WIDGETS */
+  .widgets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+  .widget { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+  .widget::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--purple); }
+  .widget.gold::before { background: var(--gold); }
+  .w-title { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+  .w-value { color: white; font-size: 2.5rem; font-weight: bold; }
+
+  /* TOOLBAR & TABLE */
+  .toolbar { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+  .btn-export { background: rgba(109, 222, 154, 0.1); border: 1px solid var(--green); color: var(--green); padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: bold; }
+  .btn-export:hover { background: var(--green); color: #000; }
+
+  .table-container { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  th { background: rgba(0,0,0,0.4); padding: 1.2rem 1.5rem; color: var(--gold-bright); font-family: 'Cinzel', serif; font-size: 0.9rem; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; color: #ccc; }
+  tr:hover { background: rgba(155,109,255,0.05); }
+  
+  .badge-class { background: rgba(155,109,255,0.1); color: var(--purple); padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; border: 1px solid rgba(155,109,255,0.3); }
+  .score-high { color: var(--green); font-weight: bold; }
+  .score-mid { color: var(--gold); font-weight: bold; }
+  .score-low { color: var(--red); font-weight: bold; }
+  .score-pend { color: var(--text-muted); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div id="login-overlay">
+  <div class="login-box">
+    <h1>Cámara de Maestros</h1>
+    <p>Acceso estrictamente confidencial.</p>
+    <form id="teacher-login">
+      <input type="email" id="t-email" class="input-styled" placeholder="Correo Administrativo" required>
+      <input type="password" id="t-pass" class="input-styled" placeholder="Contraseña de Seguridad" required>
+      <div id="login-error">Acceso Denegado. Solo profesores autorizados.</div>
+      <button type="submit" class="btn-gold">Desbloquear Archivos</button>
+    </form>
+    <p style="margin-top:20px; font-size:0.75rem;"><a href="index.html" style="color:var(--text-muted);">← Volver a la academia</a></p>
+  </div>
+</div>
+
+<div id="sidebar">
+  <div class="brand">⟢ CODEX</div>
+  <div class="nav-item active">📊 Panel General</div>
+  <!-- Se quitaron las opciones inactivas para limpiar la interfaz -->
+  <div class="logout-btn" id="btn-logout">Cerrar Sesión ⍈</div>
+</div>
+
+<div id="main-content">
+  <div class="header-dash">
+    <div>
+      <h2>Métricas del Semestre</h2>
+      <p>Monitoreo en tiempo real de los aprendices conectados.</p>
+    </div>
+  </div>
+
+  <div class="widgets-grid">
+    <div class="widget">
+      <div class="w-title">Total de Alumnos</div>
+      <div class="w-value" id="stat-total">0</div>
+    </div>
+    <div class="widget gold">
+      <div class="w-title">Promedio de Grupo (Examen)</div>
+      <div class="w-value" id="stat-avg">0%</div>
+    </div>
+    <div class="widget">
+      <div class="w-title">Alumnos Graduados (Nivel 50)</div>
+      <div class="w-value" id="stat-grad">0</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <h3 style="font-family:'Cinzel'; color:var(--gold-bright);">Registro Académico</h3>
+    <button class="btn-export" onclick="exportTableToCSV('Calificaciones_Codex.csv')">📥 Exportar a Excel (CSV)</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Aprendiz</th>
+          <th>Correo Institucional</th>
+          <th>Clase Seleccionada</th>
+          <th>Nivel Actual</th>
+          <th>Examen Final</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-alumnos">
+        <tr><td colspan="5" style="text-align:center; padding: 2rem;">Conectando con la base de datos...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAYV1EGOP4vOlQwNnNBh2SdETAOsbDdWJQ",
+    authDomain: "codexarcanum-3c89e.firebaseapp.com",
+    projectId: "codexarcanum-3c89e",
+    storageBucket: "codexarcanum-3c89e.firebasestorage.app",
+    messagingSenderId: "154003457548",
+    appId: "1:154003457548:web:05698959fef96972529029"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const loginOverlay = document.getElementById('login-overlay');
+  const mainContent = document.getElementById('main-content');
+  const errorDiv = document.getElementById('login-error');
+
+
+  const correosDeMaestros = ["marcosnava73@gmail.com", "tucorreo@gmail.com"]; 
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Validar si el correo del que inició sesión está en la Lista VIP
+      if (correosDeMaestros.includes(user.email)) {
+          // ES MAESTRO: Déjalo entrar
+          loginOverlay.style.display = 'none';
+          mainContent.style.display = 'block';
+          cargarAlumnos(); 
+      } else {
+          // ES UN ALUMNO (o alguien no autorizado): Patéalo
+          await signOut(auth);
+          loginOverlay.style.display = 'flex';
+          mainContent.style.display = 'none';
+          errorDiv.style.display = 'block';
+          errorDiv.innerText = "Acceso Denegado. Esta área es solo para maestros.";
+      }
+    } else {
+      loginOverlay.style.display = 'flex';
+      mainContent.style.display = 'none';
+    }
+  });
+
+  document.getElementById('teacher-login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('t-email').value;
+    const password = document.getElementById('t-pass').value;
+    
+    // Verificamos antes de mandar a Firebase si está en la lista de maestros
+    if(!correosDeMaestros.includes(email)) {
+        errorDiv.style.display = 'block';
+        errorDiv.innerText = "Acceso Denegado. Solo profesores autorizados.";
+        return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      errorDiv.style.display = 'none';
+    } catch (error) {
+      errorDiv.style.display = 'block';
+      errorDiv.innerText = "Contraseña o correo incorrectos.";
+    }
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', () => { signOut(auth); });
+
+  async function cargarAlumnos() {
+    const querySnapshot = await getDocs(collection(db, "alumnos"));
+    const tbody = document.getElementById('tabla-alumnos');
+    tbody.innerHTML = '';
+    
+    let totalAlumnos = 0;
+    let sumaCalificaciones = 0;
+    let alumnosConExamen = 0;
+    let graduados = 0;
+
+    if(querySnapshot.empty) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">El registro está vacío.</td></tr>';
+        return;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      totalAlumnos++;
+      
+      let lvl = data.nivel || 1;
+      if(lvl >= 50) graduados++;
+
+      let scoreHTML = `<span class="score-pend">Pendiente</span>`;
+      if(data.calificacionExamen && data.calificacionExamen !== "Pendiente") {
+          let scoreNum = parseInt(data.calificacionExamen.replace('%',''));
+          sumaCalificaciones += scoreNum;
+          alumnosConExamen++;
+          
+          if(scoreNum >= 80) scoreHTML = `<span class="score-high">${data.calificacionExamen}</span>`;
+          else if(scoreNum >= 60) scoreHTML = `<span class="score-mid">${data.calificacionExamen}</span>`;
+          else scoreHTML = `<span class="score-low">${data.calificacionExamen}</span>`;
+      }
+
+      tbody.innerHTML += `
+        <tr>
+            <td style="font-weight:bold; color:white;">${data.nombre || 'Desconocido'}</td>
+            <td>${data.correo}</td>
+            <td><span class="badge-class">${data.clase || 'Ninguna'}</span></td>
+            <td>Nivel ${lvl}</td>
+            <td>${scoreHTML}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('stat-total').innerText = totalAlumnos;
+    document.getElementById('stat-grad').innerText = graduados;
+    if(alumnosConExamen > 0) {
+        document.getElementById('stat-avg').innerText = Math.round(sumaCalificaciones / alumnosConExamen) + '%';
+    }
+  }
+  
+  window.exportTableToCSV = function(filename) {
+    let csv = [];
+    let rows = document.querySelectorAll("table tr");
+    
+    for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll("td, th");
+        for (let j = 0; j < cols.length; j++) 
+            row.push('"' + cols[j].innerText + '"');
+        csv.push(row.join(","));
+    }
+
+    let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+    let downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+  }
+</script>
+</body>
+</html>
